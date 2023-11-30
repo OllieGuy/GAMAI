@@ -184,6 +184,58 @@ public class Museum : MonoBehaviour
         }
         return -1;
     }
+    public bool checkGridForValidHardPlacement(List<TranslatedPosition> cellsTakenUp)
+    {
+        List<Vector2Int> validPositions = new List<Vector2Int>();
+        foreach (TranslatedPosition t in cellsTakenUp)
+        {
+            if (grid[t.position.x, t.position.y].occupation != Occupation.Hard)
+            {
+                validPositions.Add(t.position);
+            }
+        }
+        if (validPositions.Count == cellsTakenUp.Count)
+        {
+            return true;
+        }
+        return false;
+    }
+    public List<TranslatedPosition> checkGridForValidSoftPlacement(List<LocalPosition> cellsTakenUp, Transform worldPos) //worldPos is the "root" of the artefact
+    {
+        List<TranslatedPosition> validPositions = new List<TranslatedPosition>();
+        foreach (LocalPosition l in cellsTakenUp)
+        {
+            TranslatedPosition tp = new TranslatedPosition(TranslatedPosition.translatePos(l, worldPos));
+            //could add an extra check for overwriting old soft occupation
+            //ADD A CHECK IF THE POSITIONS OF THE ARTEFACT AND THE VIEWING POS ARE IN THE SAME ROOM!!!!!!!!!!
+            if (grid[tp.position.x, tp.position.y].occupation == Occupation.None)
+            {
+                validPositions.Add(tp);
+            }
+        }
+        return validPositions;
+    }
+    public void updateGridWithPlacedObject(List<TranslatedPosition> cellsTakenUp, Occupation occupation)
+    {
+        foreach(TranslatedPosition t in cellsTakenUp)
+        {
+            if(occupation == Occupation.Hard)
+            {
+                //IF THE GRID IS SOFT WHERE TRYING TO PLACE REMOVE THAT POSITION FROM THE ARTEFACTS VIEWPOINTS
+                //MAKE SURE THAT THE VIEW POSITIONS ARE RECALCED WHEN PLACING THINGS IN THE SAME ROOM
+                //OPERATE THIS FROM WITHIN ROOM SO THAT IT DOESNT ITERATE THROUGH THE WHOLE MUSEUM
+                //THINK ABOUT WHAT HAPPENS WHEN A ROOM IS DESTROYED, NEED TO REASSIGN ARTEFACTS TO THE NEW ROOM AND RECALC
+                grid[t.position.x, t.position.y].occupation = occupation;
+            }
+            else if (occupation == Occupation.Soft)
+            {
+                if(grid[t.position.x, t.position.y].occupation != Occupation.Hard)
+                {
+                    grid[t.position.x, t.position.y].occupation = occupation;
+                }
+            }
+        }
+    }
 }
 
 public class Wall
@@ -224,6 +276,7 @@ public class Cell
     public bool lWall;
     public bool bWall;
     public bool placedInRoomThisCheck;
+    public Occupation occupation;
     public int x;
     public int y;
     public Cell(int _x, int _y)
@@ -231,7 +284,14 @@ public class Cell
         lWall = false;
         bWall = false;
         placedInRoomThisCheck = false;
+        occupation = Occupation.None;
         x = _x;
         y = _y;
     }
+}
+public enum Occupation
+{
+    None,
+    Soft,
+    Hard
 }

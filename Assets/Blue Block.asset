@@ -18,5 +18,17 @@ MonoBehaviour:
   rarity: 0
   value: 40
   authenticity: 1
+  localArtefactFootprint:
+  - xOffset: 0
+    yOffset: 0
+  localViewingPositions:
+  - xOffset: 1
+    yOffset: 0
+  - xOffset: -1
+    yOffset: 0
+  - xOffset: 0
+    yOffset: 1
+  - xOffset: 0
+    yOffset: -1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: 971f0a8bc97475c4a9e9450514ecf96a, type: 2}

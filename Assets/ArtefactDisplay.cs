@@ -12,3 +12,4 @@ public class ArtefactDisplay : MonoBehaviour
         gameObject.GetComponent<MeshCollider>().sharedMesh = artefact.mesh;
     }
 }
+

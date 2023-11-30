@@ -4,6 +4,7 @@ using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public class Controls : MonoBehaviour
 {
@@ -61,16 +62,37 @@ public class Controls : MonoBehaviour
         {
             theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
             theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Blue Block"];
+            theArtefact.GetComponent<ArtefactDisplay>().artefact.calculateWorldViewPositions(theArtefact.transform);
+            foreach (TranslatedPosition tvp in theArtefact.GetComponent<ArtefactDisplay>().artefact.worldViewingPositions)
+            {
+                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                sphere.transform.position = new Vector3(tvp.position.x, 1f, tvp.position.y);
+                sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            }
         }
         else if (Input.GetKey(KeyCode.Alpha2))
         {
             theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
             theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Red Block"];
+            theArtefact.GetComponent<ArtefactDisplay>().artefact.calculateWorldViewPositions(theArtefact.transform);
+            foreach (TranslatedPosition tvp in theArtefact.GetComponent<ArtefactDisplay>().artefact.worldViewingPositions)
+            {
+                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                sphere.transform.position = new Vector3(tvp.position.x, 1f, tvp.position.y);
+                sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            }
         }
         else if (Input.GetKey(KeyCode.Alpha3))
         {
             theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
             theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Yellow Block"];
+            theArtefact.GetComponent<ArtefactDisplay>().artefact.calculateWorldViewPositions(theArtefact.transform);
+            foreach (TranslatedPosition tvp in theArtefact.GetComponent<ArtefactDisplay>().artefact.worldViewingPositions)
+            {
+                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                sphere.transform.position = new Vector3(tvp.position.x, 1f, tvp.position.y);
+                sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            }
         }
         else
         {
