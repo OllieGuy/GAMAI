@@ -23,6 +23,8 @@ MonoBehaviour:
     yOffset: 0
   localViewingPositions:
   - xOffset: 0
-    yOffset: 0
+    yOffset: 2
+  - xOffset: -1
+    yOffset: 2
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: ba7799520d4c98b479198e1b68e76fde, type: 2}

@@ -15,25 +15,25 @@ public class Artefact : ScriptableObject
     public int value;
     public bool authenticity = true;
     public List<LocalPosition> localArtefactFootprint;
-    [NonSerialized] public List<Vector2Int> worldArtefactFootprint = new List<Vector2Int>();
+    [NonSerialized] public List<Vector2Int> worldArtefactFootprint = new List<Vector2Int>(); //The first entry of this list is the root, and is used to find things
     public List<LocalPosition> localViewingPositions;
-    public List<TranslatedPosition> worldViewingPositions = new List<TranslatedPosition>();
+    [NonSerialized] public List<TranslatedPosition> worldViewingPositions = new List<TranslatedPosition>();
 
     public Mesh mesh;
     public Material material;
 
-    public void calculateWorldViewPositions(Transform _transform)
+    public void calculateWorldViewPositions(Vector2Int posInWorld)
     {
         foreach (LocalPosition lvp in localViewingPositions)
         {
-            worldViewingPositions.Add(new TranslatedPosition(lvp, _transform.GetComponent<Transform>()));
+            worldViewingPositions.Add(new TranslatedPosition(lvp, posInWorld));
         }
     }
-    public void calculateWorldFootprint(Transform _transform)
+    public void calculateWorldFootprint(Vector2Int posInWorld)
     {
         foreach (LocalPosition laf in localArtefactFootprint)
         {
-            worldArtefactFootprint.Add(TranslatedPosition.translatePos(laf, _transform.GetComponent<Transform>()));
+            worldArtefactFootprint.Add(TranslatedPosition.translatePos(laf, posInWorld));
         }
     }
 }
@@ -65,7 +65,7 @@ public class TranslatedPosition
 {
     public Vector2Int position;
     public bool beingUsed;
-    public TranslatedPosition(LocalPosition localPosition, Transform worldPos)
+    public TranslatedPosition(LocalPosition localPosition, Vector2Int worldPos)
     {
         position = translatePos(localPosition,worldPos);
         beingUsed = false;
@@ -75,9 +75,9 @@ public class TranslatedPosition
         position = _position;
     }
 
-    public static Vector2Int translatePos(LocalPosition localPosition, Transform worldPos)
+    public static Vector2Int translatePos(LocalPosition localPosition, Vector2Int worldPos)
     {
-        Vector2Int rPos = new Vector2Int((int)worldPos.position.x + localPosition.xOffset, (int)worldPos.position.z + localPosition.yOffset);
+        Vector2Int rPos = new Vector2Int(worldPos.x + localPosition.xOffset, worldPos.y + localPosition.yOffset);
         return rPos;
     }
 }

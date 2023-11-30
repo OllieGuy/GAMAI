@@ -15,10 +15,9 @@ public class Museum : MonoBehaviour
      * The grid must ALWAYS have one inaccessable cell as a border that cannot be built on, otherwise the algorithm treats it as a wall and breaks
      * The maximum room size is 10, but that can be edited by changing the depthCount < 10 in the while loop that checks for rooms
     */
-    Cell[,] grid = new Cell[6,6]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
-    [SerializeField] Controls controls;
+    public Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     List<Room> roomsInMuseum = new List<Room>();
-    void Start()
+    public void setUp()
     {
         for (int i = 0; i < grid.GetLength(0); i++)
         {
@@ -44,16 +43,15 @@ public class Museum : MonoBehaviour
         //test room reassignment
         newWall(new Vector2Int(3, 3), new Vector2Int(4, 3));
 
-        int aaa = 0;
-        foreach (Room r in roomsInMuseum)
-        {
-            foreach (Cell c in r.cellsInside)
-            {
-                Debug.Log("x: " + c.x + " y: " + c.y + " room: " + aaa);
-            }
-            aaa++;
-        }
-        controls.meshUpdate = true;
+        //int aaa = 0;
+        //foreach (Room r in roomsInMuseum)
+        //{
+        //    foreach (Cell c in r.cellsInside)
+        //    {
+        //        Debug.Log("x: " + c.x + " y: " + c.y + " room: " + aaa);
+        //    }
+        //    aaa++;
+        //}
     }
     void newWall(Vector2Int startPos, Vector2Int endPos)
     {
@@ -151,9 +149,9 @@ public class Museum : MonoBehaviour
                         cellsInRoom.Add(grid[i, j]);
                         grid[i, j].placedInRoomThisCheck = true;
                         //ALL DEBUG STUFF CAN BE TAKEN OUT LATER
-                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        cube.transform.position = new Vector3(i + 0.5f, 1f, j + 0.5f);
-                        cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                        //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        //cube.transform.position = new Vector3(i, 1f, j);
+                        //cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
                     }
                 }
             }
@@ -170,17 +168,33 @@ public class Museum : MonoBehaviour
     }
     int locateRoom(Cell cellInRoom)
     {
-        int roomToRemoveIndex = 0;
+        int roomIndex = 0;
         foreach(Room room in roomsInMuseum)
         {
             foreach(Cell cell in room.cellsInside)
             {
                 if(cell == cellInRoom)
                 {
-                    return roomToRemoveIndex;
+                    return roomIndex;
                 }
             }
-            roomToRemoveIndex++;
+            roomIndex++;
+        }
+        return -1;
+    }
+    public int locateRoom(Artefact artefactToFind)
+    {
+        int roomIndex = 0;
+        foreach (Room room in roomsInMuseum)
+        {
+            foreach (Cell cell in room.cellsInside)
+            {
+                if (cell.x == artefactToFind.worldArtefactFootprint.First().x && cell.y == artefactToFind.worldArtefactFootprint.First().y)
+                {
+                    return roomIndex;
+                }
+            }
+            roomIndex++;
         }
         return -1;
     }
@@ -200,39 +214,46 @@ public class Museum : MonoBehaviour
         }
         return false;
     }
-    public List<TranslatedPosition> checkGridForValidSoftPlacement(List<LocalPosition> cellsTakenUp, Transform worldPos) //worldPos is the "root" of the artefact
+    public List<TranslatedPosition> checkGridForValidSoftPlacement(List<LocalPosition> cellsTakenUp, Vector2Int worldPos) //worldPos is the "root" of the artefact
     {
         List<TranslatedPosition> validPositions = new List<TranslatedPosition>();
+        int worldPosRoomIndex = locateRoom(grid[worldPos.x, worldPos.y]);
         foreach (LocalPosition l in cellsTakenUp)
         {
             TranslatedPosition tp = new TranslatedPosition(TranslatedPosition.translatePos(l, worldPos));
             //could add an extra check for overwriting old soft occupation
-            //ADD A CHECK IF THE POSITIONS OF THE ARTEFACT AND THE VIEWING POS ARE IN THE SAME ROOM!!!!!!!!!!
-            if (grid[tp.position.x, tp.position.y].occupation == Occupation.None)
+            if (grid[tp.position.x, tp.position.y].occupation == Occupation.None && worldPosRoomIndex == locateRoom(grid[tp.position.x, tp.position.y]))
             {
                 validPositions.Add(tp);
             }
         }
         return validPositions;
     }
-    public void updateGridWithPlacedObject(List<TranslatedPosition> cellsTakenUp, Occupation occupation)
+    public void updateGridWithPlacedObject(Artefact artefactToPlace)
     {
-        foreach(TranslatedPosition t in cellsTakenUp)
+        bool recalculationNecessary = false;
+        foreach (Vector2Int v in artefactToPlace.worldArtefactFootprint)
         {
-            if(occupation == Occupation.Hard)
+            if (grid[v.x, v.y].occupation == Occupation.Soft)
             {
-                //IF THE GRID IS SOFT WHERE TRYING TO PLACE REMOVE THAT POSITION FROM THE ARTEFACTS VIEWPOINTS
-                //MAKE SURE THAT THE VIEW POSITIONS ARE RECALCED WHEN PLACING THINGS IN THE SAME ROOM
-                //OPERATE THIS FROM WITHIN ROOM SO THAT IT DOESNT ITERATE THROUGH THE WHOLE MUSEUM
-                //THINK ABOUT WHAT HAPPENS WHEN A ROOM IS DESTROYED, NEED TO REASSIGN ARTEFACTS TO THE NEW ROOM AND RECALC
-                grid[t.position.x, t.position.y].occupation = occupation;
+                recalculationNecessary = true;
             }
-            else if (occupation == Occupation.Soft)
+            grid[v.x, v.y].occupation = Occupation.Hard;
+            //IF THE GRID IS SOFT WHERE TRYING TO PLACE REMOVE THAT POSITION FROM THE ARTEFACTS VIEWPOINTS
+            //MAKE SURE THAT THE VIEW POSITIONS ARE RECALCED WHEN PLACING THINGS IN THE SAME ROOM
+            //OPERATE THIS FROM WITHIN ROOM SO THAT IT DOESNT ITERATE THROUGH THE WHOLE MUSEUM
+            //THINK ABOUT WHAT HAPPENS WHEN A ROOM IS DESTROYED, NEED TO REASSIGN ARTEFACTS TO THE NEW ROOM AND RECALC
+        }
+        foreach (TranslatedPosition t in artefactToPlace.worldViewingPositions)
+        {
+            grid[t.position.x, t.position.y].occupation = Occupation.Soft;
+        }
+        if(recalculationNecessary)
+        {
+            int roomIndex = locateRoom(artefactToPlace);
+            if (roomIndex != -1)
             {
-                if(grid[t.position.x, t.position.y].occupation != Occupation.Hard)
-                {
-                    grid[t.position.x, t.position.y].occupation = occupation;
-                }
+                //roomsInMuseum[roomIndex].artefactsInRoom; //recalc the room's artefacts
             }
         }
     }
@@ -258,16 +279,21 @@ public class Wall
     public void draw()
     {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = new Vector3((float)(startPos.x + endPos.x)/2, 1f, (float)(startPos.y + endPos.y) / 2);
+        cube.transform.position = new Vector3((float)(startPos.x + endPos.x)/2 - 0.5f, 1f, (float)(startPos.y + endPos.y) / 2 - 0.5f);
         cube.transform.localScale = new Vector3(Math.Abs(startPos.x - endPos.x) + 0.01f, 1, Math.Abs(startPos.y - endPos.y) + 0.01f);
     }
 }
 public class Room
 {
     public List<Cell> cellsInside;
+    public List<Artefact> artefactsInRoom;
     public Room(List<Cell> _cellsInside)
     {
         cellsInside = _cellsInside;
+    }
+    public void recalculateArtefactsInRoom()
+    {
+        //do the thing here
     }
 }
 
