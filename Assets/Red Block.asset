@@ -12,19 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 364daec1efff5dd4db5ca18b69a4d21e, type: 3}
   m_Name: Red Block
   m_EditorClassIdentifier: 
-  artefactName: Red Block
-  description: Ooh look, it's red
-  type: 0
+  objectName: Red Block
+  description: Red blocks are said to be the most normal of all the blocks.
+  value: 150
   rarity: 1
-  value: 200
-  authenticity: 1
-  localArtefactFootprint:
+  localFootprint:
   - xOffset: 0
     yOffset: 0
-  localViewingPositions:
-  - xOffset: 0
-    yOffset: 2
+  localInteractionPositions:
+  - xOffset: 1
+    yOffset: 0
+  - xOffset: 2
+    yOffset: 0
   - xOffset: -1
-    yOffset: 2
+    yOffset: 0
+  - xOffset: -2
+    yOffset: 0
+  type: 0
+  authenticity: 1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: ba7799520d4c98b479198e1b68e76fde, type: 2}

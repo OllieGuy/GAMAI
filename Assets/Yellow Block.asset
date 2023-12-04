@@ -12,23 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 364daec1efff5dd4db5ca18b69a4d21e, type: 3}
   m_Name: Yellow Block
   m_EditorClassIdentifier: 
-  artefactName: Yellow Block
-  description: Some say divine intervention created this block
-  type: 1
+  objectName: Yellow Block
+  description: Yellow blocks are said to be the rarest of all the blocks.
+  value: 400
   rarity: 3
-  value: 750
+  localFootprint:
+  - xOffset: 0
+    yOffset: 0
+  - xOffset: 1
+    yOffset: 0
+  - xOffset: 0
+    yOffset: 1
+  - xOffset: 1
+    yOffset: 1
+  localInteractionPositions:
+  - xOffset: 2
+    yOffset: 0
+  - xOffset: 2
+    yOffset: 1
+  - xOffset: -2
+    yOffset: 0
+  - xOffset: -2
+    yOffset: 1
+  type: 1
   authenticity: 1
-  localArtefactFootprint:
-  - xOffset: 0
-    yOffset: 0
-  - xOffset: 1
-    yOffset: 0
-  - xOffset: 0
-    yOffset: 1
-  - xOffset: 1
-    yOffset: 1
-  localViewingPositions:
-  - xOffset: -1
-    yOffset: 0
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: a58f19111659e624698d154daa2367a0, type: 2}

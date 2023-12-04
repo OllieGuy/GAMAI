@@ -295,9 +295,10 @@ MonoBehaviour:
   agent: {fileID: 1546020790}
   surface: {fileID: 272392163}
   artefacts:
-  - {fileID: 11400000, guid: 1aae1c4b3cebf1942a52dc8ba71ff9f7, type: 2}
+  - {fileID: 11400000, guid: eeddb2bb637aa604aba571c436db04ff, type: 2}
   - {fileID: 11400000, guid: 76a34781dff4e314d9e7f6a6a2b33517, type: 2}
   - {fileID: 11400000, guid: fe44cd160ceda3f498df23fcfa7f89f9, type: 2}
+  interactionPos: {fileID: 5497841684599085660, guid: 45fc4a9f17116504b992992d34ebff8e, type: 3}
   meshUpdate: 0
 --- !u!4 &520805530
 Transform:
@@ -437,7 +438,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dc3ffc824e94d74cb3f8f214968594f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controls: {fileID: 520805529}
 --- !u!4 &742321387
 Transform:
   m_ObjectHideFlags: 0

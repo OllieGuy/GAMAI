@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -15,9 +16,9 @@ public class Museum : MonoBehaviour
      * The grid must ALWAYS have one inaccessable cell as a border that cannot be built on, otherwise the algorithm treats it as a wall and breaks
      * The maximum room size is 10, but that can be edited by changing the depthCount < 10 in the while loop that checks for rooms
     */
-    public Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
-    List<Room> roomsInMuseum = new List<Room>();
-    public void setUp()
+    public static Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
+    public static List<Room> roomsInMuseum = new List<Room>();
+    void Start()
     {
         for (int i = 0; i < grid.GetLength(0); i++)
         {
@@ -43,20 +44,11 @@ public class Museum : MonoBehaviour
         //test room reassignment
         newWall(new Vector2Int(3, 3), new Vector2Int(4, 3));
 
-        //int aaa = 0;
-        //foreach (Room r in roomsInMuseum)
-        //{
-        //    foreach (Cell c in r.cellsInside)
-        //    {
-        //        Debug.Log("x: " + c.x + " y: " + c.y + " room: " + aaa);
-        //    }
-        //    aaa++;
-        //}
     }
     void newWall(Vector2Int startPos, Vector2Int endPos)
     {
         Wall wall = new Wall(startPos, endPos);
-        updateGrid(wall);
+        updateGridWithWall(wall);
         wall.draw();
         if (wall.determineIfVertical())
         {
@@ -88,7 +80,7 @@ public class Museum : MonoBehaviour
             }
         }
     }
-    void updateGrid(Wall placedWall) //updates the grid of cells so that the flood fill can be performed
+    void updateGridWithWall(Wall placedWall) //updates the grid of cells so that the flood fill can be performed
     {
         if (placedWall.determineIfVertical())
         {
@@ -119,7 +111,7 @@ public class Museum : MonoBehaviour
             Cell curCell = cellQueue.Dequeue();
             try
             {
-                roomsInMuseum.RemoveAt(locateRoom(curCell));
+                roomsInMuseum.RemoveAt(Room.locateRoom(curCell));
             }
             catch (ArgumentOutOfRangeException e) { }
             visitedAlready[curCell.x, curCell.y] = true;
@@ -166,73 +158,10 @@ public class Museum : MonoBehaviour
             }
         }
     }
-    int locateRoom(Cell cellInRoom)
-    {
-        int roomIndex = 0;
-        foreach(Room room in roomsInMuseum)
-        {
-            foreach(Cell cell in room.cellsInside)
-            {
-                if(cell == cellInRoom)
-                {
-                    return roomIndex;
-                }
-            }
-            roomIndex++;
-        }
-        return -1;
-    }
-    public int locateRoom(Artefact artefactToFind)
-    {
-        int roomIndex = 0;
-        foreach (Room room in roomsInMuseum)
-        {
-            foreach (Cell cell in room.cellsInside)
-            {
-                if (cell.x == artefactToFind.worldArtefactFootprint.First().x && cell.y == artefactToFind.worldArtefactFootprint.First().y)
-                {
-                    return roomIndex;
-                }
-            }
-            roomIndex++;
-        }
-        return -1;
-    }
-    public bool checkGridForValidHardPlacement(List<TranslatedPosition> cellsTakenUp)
-    {
-        List<Vector2Int> validPositions = new List<Vector2Int>();
-        foreach (TranslatedPosition t in cellsTakenUp)
-        {
-            if (grid[t.position.x, t.position.y].occupation != Occupation.Hard)
-            {
-                validPositions.Add(t.position);
-            }
-        }
-        if (validPositions.Count == cellsTakenUp.Count)
-        {
-            return true;
-        }
-        return false;
-    }
-    public List<TranslatedPosition> checkGridForValidSoftPlacement(List<LocalPosition> cellsTakenUp, Vector2Int worldPos) //worldPos is the "root" of the artefact
-    {
-        List<TranslatedPosition> validPositions = new List<TranslatedPosition>();
-        int worldPosRoomIndex = locateRoom(grid[worldPos.x, worldPos.y]);
-        foreach (LocalPosition l in cellsTakenUp)
-        {
-            TranslatedPosition tp = new TranslatedPosition(TranslatedPosition.translatePos(l, worldPos));
-            //could add an extra check for overwriting old soft occupation
-            if (grid[tp.position.x, tp.position.y].occupation == Occupation.None && worldPosRoomIndex == locateRoom(grid[tp.position.x, tp.position.y]))
-            {
-                validPositions.Add(tp);
-            }
-        }
-        return validPositions;
-    }
-    public void updateGridWithPlacedObject(Artefact artefactToPlace)
+    public void updateGridWithPlacedObject(ObjectInstance objectToPlace)
     {
         bool recalculationNecessary = false;
-        foreach (Vector2Int v in artefactToPlace.worldArtefactFootprint)
+        foreach (Vector2Int v in objectToPlace.worldFootprint)
         {
             if (grid[v.x, v.y].occupation == Occupation.Soft)
             {
@@ -244,17 +173,13 @@ public class Museum : MonoBehaviour
             //OPERATE THIS FROM WITHIN ROOM SO THAT IT DOESNT ITERATE THROUGH THE WHOLE MUSEUM
             //THINK ABOUT WHAT HAPPENS WHEN A ROOM IS DESTROYED, NEED TO REASSIGN ARTEFACTS TO THE NEW ROOM AND RECALC
         }
-        foreach (TranslatedPosition t in artefactToPlace.worldViewingPositions)
+        foreach (TranslatedPosition t in objectToPlace.worldInteractionPositions)
         {
             grid[t.position.x, t.position.y].occupation = Occupation.Soft;
         }
         if(recalculationNecessary)
         {
-            int roomIndex = locateRoom(artefactToPlace);
-            if (roomIndex != -1)
-            {
-                //roomsInMuseum[roomIndex].artefactsInRoom; //recalc the room's artefacts
-            }
+            //do a thing
         }
     }
 }
@@ -286,14 +211,65 @@ public class Wall
 public class Room
 {
     public List<Cell> cellsInside;
-    public List<Artefact> artefactsInRoom;
+    public List<ObjectInstance> objectsInRoom;
     public Room(List<Cell> _cellsInside)
     {
         cellsInside = _cellsInside;
+        objectsInRoom = new List<ObjectInstance>();
     }
-    public void recalculateArtefactsInRoom()
+    public void recalculateObjectsInRoom()
     {
-        //do the thing here
+        int countTo = objectsInRoom.Count;
+        foreach (ObjectInstance oi in objectsInRoom)
+        {
+            Debug.Log("name: " + oi.artefact.name + " x" + oi.worldFootprint[0].x + " y" + oi.worldFootprint[0].y);
+        }
+        for (int i = 0; i < countTo; i++) //Do not try to optimise this by having it check the count - it will crash unity
+        {
+            Vector2Int pos = objectsInRoom[i].worldFootprint.First();
+            objectsInRoom[i].worldFootprint = objectsInRoom[i].artefact.calculateWorldFootprint(pos);
+            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].artefact.checkGridForValidSoftPlacement(pos);
+            objectsInRoom[i].updateMuseumGrid(true);
+            objectsInRoom[i].displayInteractionPoints();
+        }
+    }
+    public void addObjectToRoom(ObjectInstance _object)
+    {
+        objectsInRoom.Add(_object);
+    }
+    public static int locateRoom(Cell cellInRoom)
+    {
+        int roomIndex = 0;
+        foreach (Room room in Museum.roomsInMuseum)
+        {
+            foreach (Cell cell in room.cellsInside)
+            {
+                if (cell == cellInRoom)
+                {
+                    return roomIndex;
+                }
+            }
+            roomIndex++;
+        }
+        return -1;
+    }
+    public static int locateRoom(ObjectInstance objectToFind)
+    {
+        int roomIndex = 0;
+        int xSearch = objectToFind.worldFootprint.First().x;
+        int ySearch = objectToFind.worldFootprint.First().y;
+        foreach (Room room in Museum.roomsInMuseum)
+        {
+            foreach (Cell cell in room.cellsInside)
+            {
+                if (cell.x == xSearch && cell.y == ySearch)
+                {
+                    return roomIndex;
+                }
+            }
+            roomIndex++;
+        }
+        return -1;
     }
 }
 

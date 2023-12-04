@@ -16,17 +16,14 @@ public class Controls : MonoBehaviour
     [SerializeField] NavMeshSurface surface;
     [SerializeField] Artefact[] artefacts;
     Dictionary<string, Artefact> artefactDictionary = new Dictionary<string, Artefact>();
-    Museum museum;
     public bool meshUpdate = false;
 
     void Start()
     {
         foreach(Artefact a in artefacts)
         {
-            artefactDictionary.Add(a.artefactName, a);
+            artefactDictionary.Add(a.objectName, a);
         }
-        museum = new Museum();
-        museum.setUp();
         meshUpdate = true;
     }
     void Update()
@@ -45,7 +42,8 @@ public class Controls : MonoBehaviour
             }
             else if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform.gameObject.CompareTag("Artefact"))
             {
-                Destroy(hit.transform.gameObject);
+                ObjectInstance oi = hit.transform.gameObject.GetComponent<ObjectInstance>();
+                oi.removeObject();
             }
             meshUpdate = true;
         }
@@ -65,39 +63,50 @@ public class Controls : MonoBehaviour
         GameObject theArtefact = null;
         if (Input.GetKey(KeyCode.Alpha1))
         {
-            theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-            ArtefactDisplay ad = theArtefact.GetComponent<ArtefactDisplay>();
-            ad.artefact = artefactDictionary["Blue Block"];
-            ad.artefact.worldViewingPositions = museum.checkGridForValidSoftPlacement(ad.artefact.localViewingPositions, placePos);
-            museum.updateGridWithPlacedObject(ad.artefact);
+            if(Object.checkGridForValidHardPlacement(artefactDictionary["Blue Block"].localFootprint,placePos))
+            {
+                theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
+                ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
+                oi.artefact = artefactDictionary["Blue Block"];
+                oi.worldFootprint = oi.artefact.calculateWorldFootprint(placePos);
+                oi.worldInteractionPositions = oi.artefact.checkGridForValidSoftPlacement(placePos);
+                oi.updateMuseumGrid(false);
+                oi.displayInteractionPoints();
+            }
+            else
+            {
+                Debug.Log("nuh uh");
+            }
+            
+            //museum.updateGridWithPlacedObject(ad.artefact);
         }
         else if (Input.GetKey(KeyCode.Alpha2))
         {
             theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-            ArtefactDisplay ad = theArtefact.GetComponent<ArtefactDisplay>();
-            ad.artefact = artefactDictionary["Red Block"];
-            ad.artefact.worldViewingPositions = museum.checkGridForValidSoftPlacement(ad.artefact.localViewingPositions, placePos);
+            ObjectInstance od = theArtefact.GetComponent<ObjectInstance>();
+            od.artefact = artefactDictionary["Red Block"];
         }
         else if (Input.GetKey(KeyCode.Alpha3))
         {
-            theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-            ArtefactDisplay ad = theArtefact.GetComponent<ArtefactDisplay>();
-            ad.artefact = artefactDictionary["Yellow Block"];
-            ad.artefact.worldViewingPositions = museum.checkGridForValidSoftPlacement(ad.artefact.localViewingPositions, placePos);
+            if (Object.checkGridForValidHardPlacement(artefactDictionary["Yellow Block"].localFootprint, placePos))
+            {
+                theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
+                ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
+                oi.artefact = artefactDictionary["Yellow Block"];
+                oi.worldFootprint = oi.artefact.calculateWorldFootprint(placePos);
+                oi.worldInteractionPositions = oi.artefact.checkGridForValidSoftPlacement(placePos);
+                oi.updateMuseumGrid(false);
+                oi.displayInteractionPoints();
+            }
+            else
+            {
+                Debug.Log("nuh uh");
+            }
+            //ad.artefact.worldViewingPositions = museum.checkGridForValidSoftPlacement(ad.artefact.localViewingPositions, placePos);
         }
         else
         {
             Debug.Log("No colour selected");
-        }
-        if (theArtefact != null) //DEBUG STUFF
-        {
-            foreach (TranslatedPosition tvp in theArtefact.GetComponent<ArtefactDisplay>().artefact.worldViewingPositions)
-            {
-                Debug.Log("cg");
-                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                sphere.transform.position = new Vector3(tvp.position.x, 1f, tvp.position.y);
-                sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-            }
         }
     }
     void LateUpdate()

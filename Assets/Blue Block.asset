@@ -12,23 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 364daec1efff5dd4db5ca18b69a4d21e, type: 3}
   m_Name: Blue Block
   m_EditorClassIdentifier: 
-  artefactName: Blue Block
-  description: God, what a boring husk of a block
-  type: 2
+  objectName: Blue Block
+  description: Yep. That's a blue block
+  value: 20
   rarity: 0
-  value: 40
-  authenticity: 1
-  localArtefactFootprint:
+  localFootprint:
   - xOffset: 0
     yOffset: 0
-  localViewingPositions:
-  - xOffset: 1
-    yOffset: 0
-  - xOffset: -1
-    yOffset: 0
+  localInteractionPositions:
   - xOffset: 0
     yOffset: 1
   - xOffset: 0
     yOffset: -1
+  - xOffset: 1
+    yOffset: 0
+  - xOffset: -1
+    yOffset: 0
+  type: 2
+  authenticity: 1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: 971f0a8bc97475c4a9e9450514ecf96a, type: 2}
