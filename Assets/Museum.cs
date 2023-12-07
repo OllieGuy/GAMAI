@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Xml.Linq;
 using Unity.VisualScripting;
@@ -27,22 +28,16 @@ public class Museum : MonoBehaviour
                 grid[i, j] = new Cell(i,j);
             }
         }
-        newWall(new Vector2Int(1, 2), new Vector2Int(3, 2));
-        newWall(new Vector2Int(3, 2), new Vector2Int(3, 5));
-        newWall(new Vector2Int(3, 5), new Vector2Int(1, 5));
-        newWall(new Vector2Int(1, 5), new Vector2Int(1, 2));
-        //second room
-        newWall(new Vector2Int(3, 4), new Vector2Int(4, 4));
-        newWall(new Vector2Int(4, 4), new Vector2Int(4, 2));
-        newWall(new Vector2Int(4, 2), new Vector2Int(5, 2));
-        newWall(new Vector2Int(5, 2), new Vector2Int(5, 1));
-        newWall(new Vector2Int(5, 1), new Vector2Int(3, 1));
-        newWall(new Vector2Int(3, 1), new Vector2Int(3, 2));
-        //third room
-        newWall(new Vector2Int(1, 1), new Vector2Int(1, 2));
-        newWall(new Vector2Int(1, 1), new Vector2Int(3, 1));
-        //test room reassignment
-        newWall(new Vector2Int(3, 3), new Vector2Int(4, 3));
+        newWall(new Vector2Int(2, 1), new Vector2Int(9, 1));
+        newWall(new Vector2Int(9, 1), new Vector2Int(9, 9));
+        newWall(new Vector2Int(9, 9), new Vector2Int(6, 9));
+        newWall(new Vector2Int(6, 9), new Vector2Int(6, 7));
+        newWall(new Vector2Int(6, 7), new Vector2Int(2, 7));
+        newWall(new Vector2Int(2, 7), new Vector2Int(2, 1));
+
+        newWall(new Vector2Int(6, 1), new Vector2Int(6, 4));
+        newWall(new Vector2Int(6, 4), new Vector2Int(9, 4));
+        //newWall(new Vector2Int(, ), new Vector2Int(, ));
 
     }
     void newWall(Vector2Int startPos, Vector2Int endPos)
@@ -57,6 +52,7 @@ public class Museum : MonoBehaviour
             {
                 detectRoom(new Vector2Int(wall.startPos.x, startPlacingPos + i));
                 detectRoom(new Vector2Int(wall.startPos.x - 1, startPlacingPos + i));
+                //Debug.Log("Launched at x:" + (wall.startPos.x - 1) + " y:" + (startPlacingPos + i) + " result:" + a);
             }
         }
         else //if the wall is horizontal, do the same but swapped by 90 degrees
@@ -65,7 +61,8 @@ public class Museum : MonoBehaviour
             for (int i = 0; i < Math.Abs(wall.startPos.x - wall.endPos.x); i++)
             {
                 detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y));
-                detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y - 1));
+                bool a = detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y - 1));
+                Debug.Log("Launched at x:" + (startPlacingPos + i) + " y:" + (wall.startPos.y) + " result:" + a);
             }
         }
         resetPlacedInRoomThisCheck();
@@ -100,13 +97,13 @@ public class Museum : MonoBehaviour
         }
         
     }
-    void detectRoom(Vector2Int checkPos)
+    bool detectRoom(Vector2Int checkPos)
     {
         Queue<Cell> cellQueue = new Queue<Cell>();
         cellQueue.Enqueue(grid[checkPos.x, checkPos.y]); //add the end pos of the wall
         bool[,] visitedAlready = new bool[grid.GetLength(0), grid.GetLength(1)];
         int depthCount = 0;
-        while (cellQueue.Count > 0 && depthCount < 10 && !cellQueue.Peek().placedInRoomThisCheck)
+        while (cellQueue.Count > 0 && depthCount < 15 && !cellQueue.Peek().placedInRoomThisCheck)
         {
             Cell curCell = cellQueue.Dequeue();
             try
@@ -141,15 +138,17 @@ public class Museum : MonoBehaviour
                         cellsInRoom.Add(grid[i, j]);
                         grid[i, j].placedInRoomThisCheck = true;
                         //ALL DEBUG STUFF CAN BE TAKEN OUT LATER
-                        //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        //cube.transform.position = new Vector3(i, 1f, j);
-                        //cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        cube.transform.position = new Vector3(i, 1f, j);
+                        cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
                     }
                 }
             }
             Room room = new Room(cellsInRoom);
             roomsInMuseum.Add(room);
+            return true;
         }
+        return false;
         void checkAndEnqueue(Cell[,] grid, Queue<Cell> cellQueue, bool[,] visitedAlready, int x, int y, bool wallCondition)
         {
             if (x >= 0 && x < grid.GetLength(0) && y >= 0 && y < grid.GetLength(1) && wallCondition && !grid[x, y].placedInRoomThisCheck && !visitedAlready[x, y])
