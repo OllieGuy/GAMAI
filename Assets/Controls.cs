@@ -61,6 +61,9 @@ public class Controls : MonoBehaviour
     void placeBlockBasedOnKeyDown(Vector2Int placePos)
     {
         GameObject theArtefact = null;
+        if (Input.anyKey)
+        {
+        }
         if (Input.GetKey(KeyCode.Alpha1))
         {
             if(Object.checkGridForValidHardPlacement(artefactDictionary["Blue Block"].localFootprint,placePos))

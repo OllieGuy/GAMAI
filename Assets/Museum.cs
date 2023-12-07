@@ -17,7 +17,7 @@ public class Museum : MonoBehaviour
      * The grid must ALWAYS have one inaccessable cell as a border that cannot be built on, otherwise the algorithm treats it as a wall and breaks
      * The maximum room size is 10, but that can be edited by changing the depthCount < 10 in the while loop that checks for rooms
     */
-    public static Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
+    public static Cell[,] grid = new Cell[11,11]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     public static List<Room> roomsInMuseum = new List<Room>();
     void Start()
     {
@@ -38,6 +38,7 @@ public class Museum : MonoBehaviour
         newWall(new Vector2Int(6, 1), new Vector2Int(6, 4));
         newWall(new Vector2Int(6, 4), new Vector2Int(9, 4));
         //newWall(new Vector2Int(, ), new Vector2Int(, ));
+        //Room.displayRooms();
 
     }
     void newWall(Vector2Int startPos, Vector2Int endPos)
@@ -52,7 +53,6 @@ public class Museum : MonoBehaviour
             {
                 detectRoom(new Vector2Int(wall.startPos.x, startPlacingPos + i));
                 detectRoom(new Vector2Int(wall.startPos.x - 1, startPlacingPos + i));
-                //Debug.Log("Launched at x:" + (wall.startPos.x - 1) + " y:" + (startPlacingPos + i) + " result:" + a);
             }
         }
         else //if the wall is horizontal, do the same but swapped by 90 degrees
@@ -61,19 +61,18 @@ public class Museum : MonoBehaviour
             for (int i = 0; i < Math.Abs(wall.startPos.x - wall.endPos.x); i++)
             {
                 detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y));
-                bool a = detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y - 1));
-                Debug.Log("Launched at x:" + (startPlacingPos + i) + " y:" + (wall.startPos.y) + " result:" + a);
+                detectRoom(new Vector2Int(startPlacingPos + i, wall.startPos.y - 1));
             }
         }
         resetPlacedInRoomThisCheck();
     }
     void resetPlacedInRoomThisCheck()
     {
-        foreach(Room r in roomsInMuseum)
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            foreach (Cell c in r.cellsInside)
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
-                grid[c.x, c.y].placedInRoomThisCheck = false;
+                grid[i, j].placedInRoomThisCheck = false;
             }
         }
     }
@@ -99,11 +98,15 @@ public class Museum : MonoBehaviour
     }
     bool detectRoom(Vector2Int checkPos)
     {
+        if (grid[checkPos.x,checkPos.y].placedInRoomThisCheck)
+        {
+            return false;
+        }
         Queue<Cell> cellQueue = new Queue<Cell>();
-        cellQueue.Enqueue(grid[checkPos.x, checkPos.y]); //add the end pos of the wall
-        bool[,] visitedAlready = new bool[grid.GetLength(0), grid.GetLength(1)];
+        bool[,] visitedThisDetect = new bool[grid.GetLength(0), grid.GetLength(1)];
         int depthCount = 0;
-        while (cellQueue.Count > 0 && depthCount < 15 && !cellQueue.Peek().placedInRoomThisCheck)
+        cellQueue.Enqueue(grid[checkPos.x, checkPos.y]);
+        while (cellQueue.Count > 0 && depthCount <= 48) //MAX ROOM SIZE
         {
             Cell curCell = cellQueue.Dequeue();
             try
@@ -111,20 +114,19 @@ public class Museum : MonoBehaviour
                 roomsInMuseum.RemoveAt(Room.locateRoom(curCell));
             }
             catch (ArgumentOutOfRangeException e) { }
-            visitedAlready[curCell.x, curCell.y] = true;
-            checkAndEnqueue(grid, cellQueue, visitedAlready, curCell.x, curCell.y - 1, !grid[curCell.x, curCell.y].bWall);
-            checkAndEnqueue(grid, cellQueue, visitedAlready, curCell.x - 1, curCell.y, !grid[curCell.x, curCell.y].lWall);
+            visitedThisDetect[curCell.x, curCell.y] = true;
+            depthCount += checkAndEnqueue(cellQueue, curCell.x, curCell.y - 1, !grid[curCell.x, curCell.y].bWall);
+            depthCount += checkAndEnqueue(cellQueue, curCell.x - 1, curCell.y, !grid[curCell.x, curCell.y].lWall);
             try
             {
-                checkAndEnqueue(grid, cellQueue, visitedAlready, curCell.x, curCell.y + 1, !grid[curCell.x, curCell.y + 1].bWall);
+                depthCount += checkAndEnqueue(cellQueue, curCell.x, curCell.y + 1, !grid[curCell.x, curCell.y + 1].bWall);
             }
             catch (IndexOutOfRangeException e) { }
             try
             {
-                checkAndEnqueue(grid, cellQueue, visitedAlready, curCell.x + 1, curCell.y, !grid[curCell.x + 1, curCell.y].lWall);
+                depthCount += checkAndEnqueue(cellQueue, curCell.x + 1, curCell.y, !grid[curCell.x + 1, curCell.y].lWall);
             }
             catch (IndexOutOfRangeException e) { }
-            depthCount++;
         }
         if (cellQueue.Count == 0)
         {
@@ -133,14 +135,9 @@ public class Museum : MonoBehaviour
             {
                 for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    if (visitedAlready[i, j])
+                    if (visitedThisDetect[i, j])
                     {
                         cellsInRoom.Add(grid[i, j]);
-                        grid[i, j].placedInRoomThisCheck = true;
-                        //ALL DEBUG STUFF CAN BE TAKEN OUT LATER
-                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        cube.transform.position = new Vector3(i, 1f, j);
-                        cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
                     }
                 }
             }
@@ -149,12 +146,15 @@ public class Museum : MonoBehaviour
             return true;
         }
         return false;
-        void checkAndEnqueue(Cell[,] grid, Queue<Cell> cellQueue, bool[,] visitedAlready, int x, int y, bool wallCondition)
+        int checkAndEnqueue(Queue<Cell> cellQueue, int x, int y, bool wallCondition)
         {
-            if (x >= 0 && x < grid.GetLength(0) && y >= 0 && y < grid.GetLength(1) && wallCondition && !grid[x, y].placedInRoomThisCheck && !visitedAlready[x, y])
+            if (x >= 0 && x < grid.GetLength(0) && y >= 0 && y < grid.GetLength(1) && wallCondition && !grid[x, y].placedInRoomThisCheck)
             {
+                grid[x, y].placedInRoomThisCheck = true;
                 cellQueue.Enqueue(grid[x, y]);
+                return 1;
             }
+            return 0;
         }
     }
     public void updateGridWithPlacedObject(ObjectInstance objectToPlace)
@@ -269,6 +269,19 @@ public class Room
             roomIndex++;
         }
         return -1;
+    }
+    public static void displayRooms()
+    {
+        foreach (Room room in Museum.roomsInMuseum)
+        {
+            Debug.Log("gottem");
+            foreach (Cell cell in room.cellsInside)
+            {
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                cube.transform.position = new Vector3(cell.x, 1f, cell.y);
+                cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            }
+        }
     }
 }
 
