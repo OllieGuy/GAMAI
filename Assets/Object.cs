@@ -37,7 +37,7 @@ public class Object : ScriptableObject
         }
         return true;
     }
-    public List<TranslatedPosition> checkGridForValidSoftPlacement(Vector2Int worldPos) //worldPos is the "root" of the artefact
+    public List<TranslatedPosition> calculateValidSoftPlacement(Vector2Int worldPos) //worldPos is the "root" of the artefact
     {
         List<TranslatedPosition> validPositions = new List<TranslatedPosition>();
         int worldPosRoomIndex = Room.locateRoom(Museum.grid[worldPos.x, worldPos.y]);

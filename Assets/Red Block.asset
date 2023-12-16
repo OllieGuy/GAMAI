@@ -19,15 +19,21 @@ MonoBehaviour:
   localFootprint:
   - xOffset: 0
     yOffset: 0
-  localInteractionPositions:
   - xOffset: 1
     yOffset: 0
+  localInteractionPositions:
   - xOffset: 2
     yOffset: 0
   - xOffset: -1
     yOffset: 0
-  - xOffset: -2
-    yOffset: 0
+  - xOffset: 0
+    yOffset: 1
+  - xOffset: 0
+    yOffset: -1
+  - xOffset: 1
+    yOffset: -1
+  - xOffset: 1
+    yOffset: 1
   type: 0
   authenticity: 1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}

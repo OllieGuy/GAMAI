@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Artefact
+  - Artefact Representation
+  - Interaction Point
   layers:
   - Default
   - TransparentFX

@@ -20,13 +20,18 @@ public class Controls : MonoBehaviour
 
     void Start()
     {
-        foreach(Artefact a in artefacts)
+        foreach (Artefact a in artefacts)
         {
             artefactDictionary.Add(a.objectName, a);
         }
         meshUpdate = true;
     }
     void Update()
+    {
+        checkInput();
+    }
+
+    void checkInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -61,55 +66,34 @@ public class Controls : MonoBehaviour
     void placeBlockBasedOnKeyDown(Vector2Int placePos)
     {
         GameObject theArtefact = null;
-        if (Input.anyKey)
+        string artefactToPlace = null;
+        if (Input.anyKeyDown)
         {
+            if (Input.GetKey(KeyCode.Alpha1))
+            {
+                artefactToPlace = "Blue Block";
+            }
+            else if (Input.GetKey(KeyCode.Alpha2))
+            {
+                artefactToPlace = "Red Block";
+            }
+            else if (Input.GetKey(KeyCode.Alpha3))
+            {
+                artefactToPlace = "Yellow Block";
+            }
         }
-        if (Input.GetKey(KeyCode.Alpha1))
+        if (artefactToPlace != null)
         {
-            if(Object.checkGridForValidHardPlacement(artefactDictionary["Blue Block"].localFootprint,placePos))
+            if (Object.checkGridForValidHardPlacement(artefactDictionary[artefactToPlace].localFootprint, placePos))
             {
                 theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
                 ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
-                oi.artefact = artefactDictionary["Blue Block"];
+                oi.artefact = artefactDictionary[artefactToPlace];
                 oi.worldFootprint = oi.artefact.calculateWorldFootprint(placePos);
-                oi.worldInteractionPositions = oi.artefact.checkGridForValidSoftPlacement(placePos);
+                oi.worldInteractionPositions = oi.artefact.calculateValidSoftPlacement(placePos);
                 oi.updateMuseumGrid(false);
                 oi.displayInteractionPoints();
             }
-            else
-            {
-                Debug.Log("nuh uh");
-            }
-            
-            //museum.updateGridWithPlacedObject(ad.artefact);
-        }
-        else if (Input.GetKey(KeyCode.Alpha2))
-        {
-            theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-            ObjectInstance od = theArtefact.GetComponent<ObjectInstance>();
-            od.artefact = artefactDictionary["Red Block"];
-        }
-        else if (Input.GetKey(KeyCode.Alpha3))
-        {
-            if (Object.checkGridForValidHardPlacement(artefactDictionary["Yellow Block"].localFootprint, placePos))
-            {
-                theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-                ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
-                oi.artefact = artefactDictionary["Yellow Block"];
-                oi.worldFootprint = oi.artefact.calculateWorldFootprint(placePos);
-                oi.worldInteractionPositions = oi.artefact.checkGridForValidSoftPlacement(placePos);
-                oi.updateMuseumGrid(false);
-                oi.displayInteractionPoints();
-            }
-            else
-            {
-                Debug.Log("nuh uh");
-            }
-            //ad.artefact.worldViewingPositions = museum.checkGridForValidSoftPlacement(ad.artefact.localViewingPositions, placePos);
-        }
-        else
-        {
-            Debug.Log("No colour selected");
         }
     }
     void LateUpdate()

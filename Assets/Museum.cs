@@ -17,7 +17,7 @@ public class Museum : MonoBehaviour
      * The grid must ALWAYS have one inaccessable cell as a border that cannot be built on, otherwise the algorithm treats it as a wall and breaks
      * The maximum room size is 10, but that can be edited by changing the depthCount < 10 in the while loop that checks for rooms
     */
-    public static Cell[,] grid = new Cell[11,11]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
+    public static Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     public static List<Room> roomsInMuseum = new List<Room>();
     void Start()
     {
@@ -219,21 +219,27 @@ public class Room
     public void recalculateObjectsInRoom()
     {
         int countTo = objectsInRoom.Count;
-        foreach (ObjectInstance oi in objectsInRoom)
+        foreach(Cell cell in cellsInside) //THIS MIGHT BE TEMP
         {
-            Debug.Log("name: " + oi.artefact.name + " x" + oi.worldFootprint[0].x + " y" + oi.worldFootprint[0].y);
+            cell.occupation = Occupation.None;
         }
+        //foreach (ObjectInstance oi in objectsInRoom)
+        //{
+        //    Debug.Log("name: " + oi.artefact.name + " x" + oi.worldFootprint[0].x + " y" + oi.worldFootprint[0].y + " WIP:" + oi.worldInteractionPositions.Count);
+        //}
         for (int i = 0; i < countTo; i++) //Do not try to optimise this by having it check the count - it will crash unity
         {
             Vector2Int pos = objectsInRoom[i].worldFootprint.First();
             objectsInRoom[i].worldFootprint = objectsInRoom[i].artefact.calculateWorldFootprint(pos);
-            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].artefact.checkGridForValidSoftPlacement(pos);
+            //Debug.Log("calced" + objectsInRoom[i].artefact.checkGridForValidSoftPlacement(pos).Count);
+            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].artefact.calculateValidSoftPlacement(pos);
             objectsInRoom[i].updateMuseumGrid(true);
             objectsInRoom[i].displayInteractionPoints();
         }
     }
     public void addObjectToRoom(ObjectInstance _object)
     {
+        recalculateObjectsInRoom();//THIS MIGHT BE TEMP
         objectsInRoom.Add(_object);
     }
     public static int locateRoom(Cell cellInRoom)
@@ -274,7 +280,6 @@ public class Room
     {
         foreach (Room room in Museum.roomsInMuseum)
         {
-            Debug.Log("gottem");
             foreach (Cell cell in room.cellsInside)
             {
                 GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);

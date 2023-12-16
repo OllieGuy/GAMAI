@@ -298,7 +298,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: eeddb2bb637aa604aba571c436db04ff, type: 2}
   - {fileID: 11400000, guid: 76a34781dff4e314d9e7f6a6a2b33517, type: 2}
   - {fileID: 11400000, guid: fe44cd160ceda3f498df23fcfa7f89f9, type: 2}
-  interactionPos: {fileID: 5497841684599085660, guid: 45fc4a9f17116504b992992d34ebff8e, type: 3}
   meshUpdate: 0
 --- !u!4 &520805530
 Transform:
@@ -539,13 +538,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4296014, y: -0, z: -0, w: 0.90301865}
-  m_LocalPosition: {x: 4.1, y: 8.69, z: -3.86}
+  m_LocalRotation: {x: 0.5004589, y: -0, z: -0, w: 0.8657603}
+  m_LocalPosition: {x: 5.31, y: 8.69, z: -0.56}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50.885, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60.061, y: 0, z: 0}
 --- !u!1 &1546020785
 GameObject:
   m_ObjectHideFlags: 0

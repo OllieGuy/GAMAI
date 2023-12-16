@@ -13,6 +13,12 @@ public class Artefact : Object
 
     public Mesh mesh;
     public Material material;
+
+    public float calculateHappinessChange()
+    {
+        float change = 0;
+        return change;
+    }
 }
 public enum ArtefactType
 {
