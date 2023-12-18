@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class NPC
 {
-    public float investigatorExplorer;
     public float happiness;
     public float turnLength;
     public int turnsSinceSpawn;
@@ -16,7 +15,6 @@ public class NPC
     public NPC()
     {
         System.Random rand = new System.Random();
-        investigatorExplorer = (float)rand.NextDouble();
         happiness = 0.5f;
         turnLength = 5f;
         turnsSinceSpawn = 0;
@@ -28,15 +26,6 @@ public class NPC
         {
 
         }
-    }
-    void calculateHappinessChange(float distanceWalkedToArtefact, Artefact artefact)
-    {
-        float happinessChange = 0f;
-        happinessChange += (distanceWalkedToArtefact * (investigatorExplorer - 0.5f)); //* memorisedArtefacts.Count;
-        happinessChange += (float)Math.Log((0.01f*artefact.value) + 1);
-        happinessChange += 0; //change to weight according to rarity
-        happinessChange += 0; //auth check
-        happinessChange += 0;
     }
     bool checkForFake(Artefact artefact)
     {

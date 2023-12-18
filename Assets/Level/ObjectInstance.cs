@@ -8,13 +8,13 @@ using UnityEngine;
 public class ObjectInstance : MonoBehaviour
 {
     public Artefact artefact;
+    public GameObject warning;
     [SerializeField] GameObject interactionPos;
-    [NonSerialized] public List<Vector2Int> worldFootprint = new List<Vector2Int>(); //The first entry of this list is the root, and is used to find things
-    [NonSerialized] public List<TranslatedPosition> worldInteractionPositions = new List<TranslatedPosition>();
+    [SerializeField] public List<Vector2Int> worldFootprint = new List<Vector2Int>(); //The first entry of this list is the root, and is used to find things
+    [SerializeField] public List<TranslatedPosition> worldInteractionPositions = new List<TranslatedPosition>();
 
     void Start()
     {
-        //gameObject.GetComponent<MeshFilter>().mesh = artefact.mesh;
         foreach (LocalPosition v in artefact.localFootprint)
         {
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -39,8 +39,7 @@ public class ObjectInstance : MonoBehaviour
         gameObject.GetComponent<MeshRenderer>().material = artefact.material;
         gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
     }
-
-    public void updateMuseumGrid(bool isUpdate)
+    public void updateMuseumGridWithHard(bool isUpdate)
     {
         int roomIndex = Room.locateRoom(this);
         if (roomIndex != -1)
@@ -54,28 +53,35 @@ public class ObjectInstance : MonoBehaviour
         {
             Museum.grid[v.x, v.y].occupation = Occupation.Hard;
         }
+    }
+    public void updateMuseumGridWithSoft()
+    {
         foreach (TranslatedPosition tp in worldInteractionPositions)
         {
-            Debug.Log(tp.position.x + " " + tp.position.y);
             Museum.grid[tp.position.x, tp.position.y].occupation = Occupation.Soft;
         }
     }
 
-    public void removeObject() //local interaction footprint not being cleared properly - might be to do with when at least one point is recalced as thats the only time it seems to happen
+    public void createObject(Vector2Int placePos)
     {
-        //it isnt clearing any of the soft occupation when the object has already been recalculated
-        //ITS BECAUSE THE SOFT ONES ARE ALREADY THERE FROM BEFORE THE RECALC BUT THEN IT SETS THE NEW LIST TO 0 THINGS
-        //SO WHEN THE THING IS RECALCED IT DOESNT THINK THERE ARE ANY SOFT OCCUPATIONS
+        int roomIndex = Room.locateRoom(Museum.grid[placePos.x,placePos.y]);
+        worldFootprint = artefact.calculateWorldFootprint(placePos);
+        if (roomIndex != -1)
+        {
+            Museum.roomsInMuseum[roomIndex].addObjectToRoom(this);
+        }
+        updateMuseumGridWithSoft();
+    }
+
+    public void removeObject()
+    {
         foreach (Vector2Int v in worldFootprint)
         {
             Museum.grid[v.x, v.y].occupation = Occupation.None;
-            Debug.Log("hard Cleared x:" + v.x + " y:" + v.y);
         }
-        Debug.Log(worldInteractionPositions.Count);
         foreach (TranslatedPosition tp in worldInteractionPositions)
         {
             Museum.grid[tp.position.x, tp.position.y].occupation = Occupation.None;
-            Debug.Log("soft Cleared x:" + tp.position.x + " y:" + tp.position.y);
         }
         int roomIndex = Room.locateRoom(this);
         if (roomIndex != -1)
@@ -84,7 +90,6 @@ public class ObjectInstance : MonoBehaviour
             Museum.roomsInMuseum[roomIndex].recalculateObjectsInRoom();
         }
         Destroy(gameObject);
-        Debug.Log("----------");
     }
 
     public void displayInteractionPoints()
@@ -106,6 +111,12 @@ public class ObjectInstance : MonoBehaviour
             GameObject intPos = Instantiate(interactionPos, new Vector3(tvp.position.x, 0.55f, tvp.position.y), Quaternion.identity);
             intPos.transform.parent = transform;
             intPos.tag = "Interaction Point";
+        }
+        if(worldInteractionPositions.Count == 0)
+        {
+            GameObject instWarn = Instantiate(warning, new Vector3(worldFootprint.First().x, 2f, worldFootprint.First().y), Quaternion.identity);
+            instWarn.transform.parent = transform;
+            instWarn.tag = "Interaction Point";
         }
     }
 }

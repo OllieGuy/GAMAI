@@ -89,12 +89,31 @@ public class Controls : MonoBehaviour
                 theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
                 ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
                 oi.artefact = artefactDictionary[artefactToPlace];
-                oi.worldFootprint = oi.artefact.calculateWorldFootprint(placePos);
-                oi.worldInteractionPositions = oi.artefact.calculateValidSoftPlacement(placePos);
-                oi.updateMuseumGrid(false);
-                oi.displayInteractionPoints();
+                oi.createObject(placePos);
             }
         }
+        //string a = "";
+        //for (int i = 0; i < Museum.grid.GetLength(0); i++)
+        //{
+        //    for (int j = 0; j < Museum.grid.GetLength(1); j++)
+        //    {
+        //        if (Museum.grid[i, j].occupation == Occupation.Hard)
+        //        {
+        //            a += "h";
+        //        }
+        //        else if (Museum.grid[i, j].occupation == Occupation.Soft)
+        //        {
+        //            a += "s";
+        //        }
+        //        else
+        //        {
+        //            a += "0";
+        //        }
+        //        a += "  ";
+        //    }
+        //    a += "\n";
+        //}
+        //Debug.Log(a);
     }
     void LateUpdate()
     {

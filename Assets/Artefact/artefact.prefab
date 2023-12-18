@@ -120,4 +120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   artefact: {fileID: 0}
+  warning: {fileID: 840349137026566557, guid: 1c8ff68e22a93c64fb89a9ca226a7185, type: 3}
   interactionPos: {fileID: 5497841684599085660, guid: 45fc4a9f17116504b992992d34ebff8e, type: 3}
+  worldFootprint: []
+  worldInteractionPositions: []

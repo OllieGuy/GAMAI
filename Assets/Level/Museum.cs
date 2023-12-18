@@ -17,7 +17,7 @@ public class Museum : MonoBehaviour
      * The grid must ALWAYS have one inaccessable cell as a border that cannot be built on, otherwise the algorithm treats it as a wall and breaks
      * The maximum room size is 10, but that can be edited by changing the depthCount < 10 in the while loop that checks for rooms
     */
-    public static Cell[,] grid = new Cell[21,21]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
+    public static Cell[,] grid = new Cell[11,11]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     public static List<Room> roomsInMuseum = new List<Room>();
     void Start()
     {
@@ -205,88 +205,6 @@ public class Wall
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.transform.position = new Vector3((float)(startPos.x + endPos.x)/2 - 0.5f, 1f, (float)(startPos.y + endPos.y) / 2 - 0.5f);
         cube.transform.localScale = new Vector3(Math.Abs(startPos.x - endPos.x) + 0.01f, 1, Math.Abs(startPos.y - endPos.y) + 0.01f);
-    }
-}
-public class Room
-{
-    public List<Cell> cellsInside;
-    public List<ObjectInstance> objectsInRoom;
-    public Room(List<Cell> _cellsInside)
-    {
-        cellsInside = _cellsInside;
-        objectsInRoom = new List<ObjectInstance>();
-    }
-    public void recalculateObjectsInRoom()
-    {
-        int countTo = objectsInRoom.Count;
-        foreach(Cell cell in cellsInside) //THIS MIGHT BE TEMP
-        {
-            cell.occupation = Occupation.None;
-        }
-        //foreach (ObjectInstance oi in objectsInRoom)
-        //{
-        //    Debug.Log("name: " + oi.artefact.name + " x" + oi.worldFootprint[0].x + " y" + oi.worldFootprint[0].y + " WIP:" + oi.worldInteractionPositions.Count);
-        //}
-        for (int i = 0; i < countTo; i++) //Do not try to optimise this by having it check the count - it will crash unity
-        {
-            Vector2Int pos = objectsInRoom[i].worldFootprint.First();
-            objectsInRoom[i].worldFootprint = objectsInRoom[i].artefact.calculateWorldFootprint(pos);
-            //Debug.Log("calced" + objectsInRoom[i].artefact.checkGridForValidSoftPlacement(pos).Count);
-            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].artefact.calculateValidSoftPlacement(pos);
-            objectsInRoom[i].updateMuseumGrid(true);
-            objectsInRoom[i].displayInteractionPoints();
-        }
-    }
-    public void addObjectToRoom(ObjectInstance _object)
-    {
-        recalculateObjectsInRoom();//THIS MIGHT BE TEMP
-        objectsInRoom.Add(_object);
-    }
-    public static int locateRoom(Cell cellInRoom)
-    {
-        int roomIndex = 0;
-        foreach (Room room in Museum.roomsInMuseum)
-        {
-            foreach (Cell cell in room.cellsInside)
-            {
-                if (cell == cellInRoom)
-                {
-                    return roomIndex;
-                }
-            }
-            roomIndex++;
-        }
-        return -1;
-    }
-    public static int locateRoom(ObjectInstance objectToFind)
-    {
-        int roomIndex = 0;
-        int xSearch = objectToFind.worldFootprint.First().x;
-        int ySearch = objectToFind.worldFootprint.First().y;
-        foreach (Room room in Museum.roomsInMuseum)
-        {
-            foreach (Cell cell in room.cellsInside)
-            {
-                if (cell.x == xSearch && cell.y == ySearch)
-                {
-                    return roomIndex;
-                }
-            }
-            roomIndex++;
-        }
-        return -1;
-    }
-    public static void displayRooms()
-    {
-        foreach (Room room in Museum.roomsInMuseum)
-        {
-            foreach (Cell cell in room.cellsInside)
-            {
-                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                cube.transform.position = new Vector3(cell.x, 1f, cell.y);
-                cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-            }
-        }
     }
 }
 

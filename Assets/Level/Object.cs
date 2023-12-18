@@ -53,6 +53,16 @@ public class Object : ScriptableObject
         }
         return validPositions;
     }
+    float  calculateHappinessChange(NPC npc)
+    {
+        float happinessChange = 0f;
+        happinessChange += 0; //distance walked
+        happinessChange += 0; //value
+        happinessChange += 0; //change to weight according to rarity
+        happinessChange += 0; //auth check
+        happinessChange += 0; //interest
+        return happinessChange;
+    }
 }
 
 public enum Rarity
@@ -73,6 +83,7 @@ public class LocalPosition
         yOffset = _yOffset;
     }
 }
+[Serializable]
 public class TranslatedPosition
 {
     public Vector2Int position;
