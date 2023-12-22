@@ -21,6 +21,7 @@ public abstract class NPCAbstract
     public abstract void EnterState(NPC npc);
     public abstract void UpdateState(NPC npc);
 }
+
 public class WalkToPosition : NPCAbstract
 {
     public override void EnterState(NPC npc)

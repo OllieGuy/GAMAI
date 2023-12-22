@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class NPC
 {
+<<<<<<< Updated upstream
     public float investigatorExplorer;
     public float happiness;
     public float turnLength;
@@ -13,6 +14,15 @@ public class NPC
     public Vector3 targetPos;
     public List<Artefact> visitedArtefacts = new List<Artefact>();
     public List<ArtefactMemory> memorisedArtefacts = new List<ArtefactMemory>();
+=======
+    private float happiness;
+    private float turnLength;
+    private int turnsSinceSpawn;
+    private Interest interest;
+    private Vector3 targetPos;
+    private List<Artefact> visitedArtefacts = new List<Artefact>();
+    private List<ArtefactMemory> memorisedArtefacts = new List<ArtefactMemory>();
+>>>>>>> Stashed changes
     public NPC()
     {
         System.Random rand = new System.Random();
@@ -20,7 +30,7 @@ public class NPC
         happiness = 0.5f;
         turnLength = 5f;
         turnsSinceSpawn = 0;
-        interest = ((Interest)rand.Next(0, Enum.GetValues(typeof(Interest)).Length)).ToString();
+        interest = (Interest)rand.Next(0, Enum.GetValues(typeof(Interest)).Length);
     }
     void calculateDesire()
     {
