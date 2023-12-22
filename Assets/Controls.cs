@@ -1,11 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Security;
 using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
 
 public class Controls : MonoBehaviour
 {
@@ -15,23 +14,24 @@ public class Controls : MonoBehaviour
     [SerializeField] NavMeshAgent agent;
     [SerializeField] NavMeshSurface surface;
     [SerializeField] Artefact[] artefacts;
+    [SerializeField] Material doorwayMaterial;
     Dictionary<string, Artefact> artefactDictionary = new Dictionary<string, Artefact>();
     public bool meshUpdate = false;
+    private static Vector2Int startNavPoint = new Vector2Int(-1,-1);
 
     void Start()
     {
+<<<<<<< Updated upstream
+        foreach(Artefact a in artefacts)
+=======
+        Wall.doorwayMaterial = doorwayMaterial;
         foreach (Artefact a in artefacts)
+>>>>>>> Stashed changes
         {
-            artefactDictionary.Add(a.objectName, a);
+            artefactDictionary.Add(a.artefactName, a);
         }
-        meshUpdate = true;
     }
     void Update()
-    {
-        checkInput();
-    }
-
-    void checkInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -40,15 +40,14 @@ public class Controls : MonoBehaviour
             if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
             {
                 Vector3 targetPos = hit.point;
-                Vector2Int placePos = new Vector2Int();
-                placePos.x = (int)Mathf.Round(targetPos.x);
-                placePos.y = (int)Mathf.Round(targetPos.z);
-                placeBlockBasedOnKeyDown(placePos);
+                targetPos.x = Mathf.Round(targetPos.x);
+                targetPos.y += 0.5f;
+                targetPos.z = Mathf.Round(targetPos.z);
+                placeBlockBasedOnKeyDown(targetPos);
             }
             else if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform.gameObject.CompareTag("Artefact"))
             {
-                ObjectInstance oi = hit.transform.gameObject.GetComponent<ObjectInstance>();
-                oi.removeObject();
+                Destroy(hit.transform.gameObject);
             }
             meshUpdate = true;
         }
@@ -61,59 +60,61 @@ public class Controls : MonoBehaviour
                 agent.SetDestination(hit.point);
             }
         }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
+            {
+                if (startNavPoint.x != -1)
+                {
+                    Vector2Int endNavPoint = new Vector2Int();
+                    Vector3 targetPos = hit.point;
+                    endNavPoint.x = (int)Mathf.Round(targetPos.x);
+                    endNavPoint.y = (int)Mathf.Round(targetPos.z);
+                    Pathfinding p = new Pathfinding();
+                    List<Vector2Int> path = Node.convertToVector2Int(p.AStarSolve(startNavPoint, endNavPoint));
+                    foreach(Vector2Int v in path)
+                    {
+                        //Debug.Log("23vbbw");
+                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        cube.transform.position = new Vector3(v.x, 0.5f, v.y);
+                        cube.transform.localScale = new Vector3(1f,0.1f,1f);
+                    }
+                    startNavPoint = new Vector2Int(-1, -1);
+                }
+                else
+                {
+                    Vector3 targetPos = hit.point;
+                    startNavPoint.x = (int)Mathf.Round(targetPos.x);
+                    startNavPoint.y = (int)Mathf.Round(targetPos.z);
+                }
+            }
+        }
     }
 
-    void placeBlockBasedOnKeyDown(Vector2Int placePos)
+    void placeBlockBasedOnKeyDown(Vector3 targetPos)
     {
-        GameObject theArtefact = null;
-        string artefactToPlace = null;
-        if (Input.anyKeyDown)
+        GameObject theArtefact;
+        if (Input.GetKey(KeyCode.Alpha1))
         {
-            if (Input.GetKey(KeyCode.Alpha1))
-            {
-                artefactToPlace = "Blue Block";
-            }
-            else if (Input.GetKey(KeyCode.Alpha2))
-            {
-                artefactToPlace = "Red Block";
-            }
-            else if (Input.GetKey(KeyCode.Alpha3))
-            {
-                artefactToPlace = "Yellow Block";
-            }
+            theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
+            theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Blue Block"];
         }
-        if (artefactToPlace != null)
+        else if (Input.GetKey(KeyCode.Alpha2))
         {
-            if (Object.checkGridForValidHardPlacement(artefactDictionary[artefactToPlace].localFootprint, placePos))
-            {
-                theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-                ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
-                oi.artefact = artefactDictionary[artefactToPlace];
-                oi.createObject(placePos);
-            }
+            theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
+            theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Red Block"];
         }
-        //string a = "";
-        //for (int i = 0; i < Museum.grid.GetLength(0); i++)
-        //{
-        //    for (int j = 0; j < Museum.grid.GetLength(1); j++)
-        //    {
-        //        if (Museum.grid[i, j].occupation == Occupation.Hard)
-        //        {
-        //            a += "h";
-        //        }
-        //        else if (Museum.grid[i, j].occupation == Occupation.Soft)
-        //        {
-        //            a += "s";
-        //        }
-        //        else
-        //        {
-        //            a += "0";
-        //        }
-        //        a += "  ";
-        //    }
-        //    a += "\n";
-        //}
-        //Debug.Log(a);
+        else if (Input.GetKey(KeyCode.Alpha3))
+        {
+            theArtefact = Instantiate(artefact, targetPos, Quaternion.identity);
+            theArtefact.GetComponent<ArtefactDisplay>().artefact = artefactDictionary["Yellow Block"];
+        }
+        else
+        {
+            Debug.Log("No colour selected");
+        }
     }
     void LateUpdate()
     {

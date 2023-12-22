@@ -298,6 +298,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: eeddb2bb637aa604aba571c436db04ff, type: 2}
   - {fileID: 11400000, guid: 76a34781dff4e314d9e7f6a6a2b33517, type: 2}
   - {fileID: 11400000, guid: fe44cd160ceda3f498df23fcfa7f89f9, type: 2}
+  doorwayMaterial: {fileID: 2100000, guid: 7563f7997a7bdb64182ecdee16f3ec3c, type: 2}
   meshUpdate: 0
 --- !u!4 &520805530
 Transform:
