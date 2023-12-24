@@ -9,21 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 364daec1efff5dd4db5ca18b69a4d21e, type: 3}
+  m_Script: {fileID: 0}
   m_Name: Yellow Block
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::Artefact
   objectName: Yellow Block
-  description: Yellow blocks are said to be the rarest of all the blocks.
-  value: 400
+  description: yellow
+  value: 500
   rarity: 3
   localFootprint:
   - xOffset: 0
     yOffset: 0
   - xOffset: 1
     yOffset: 0
-  - xOffset: 0
-    yOffset: 1
   - xOffset: 1
+    yOffset: 1
+  - xOffset: 0
     yOffset: 1
   localInteractionPositions:
   - xOffset: -1

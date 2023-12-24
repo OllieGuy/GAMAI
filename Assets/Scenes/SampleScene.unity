@@ -295,7 +295,7 @@ MonoBehaviour:
   agent: {fileID: 1546020790}
   surface: {fileID: 272392163}
   artefacts:
-  - {fileID: 11400000, guid: eeddb2bb637aa604aba571c436db04ff, type: 2}
+  - {fileID: 11400000, guid: c10c7cc4aadd7b54ea5c1ee8cc14ba30, type: 2}
   - {fileID: 11400000, guid: 76a34781dff4e314d9e7f6a6a2b33517, type: 2}
   - {fileID: 11400000, guid: fe44cd160ceda3f498df23fcfa7f89f9, type: 2}
   doorwayMaterial: {fileID: 2100000, guid: 7563f7997a7bdb64182ecdee16f3ec3c, type: 2}
@@ -438,6 +438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dc3ffc824e94d74cb3f8f214968594f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controls: {fileID: 520805529}
 --- !u!4 &742321387
 Transform:
   m_ObjectHideFlags: 0
