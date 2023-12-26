@@ -77,9 +77,9 @@ public class Room
         {
             foreach (Cell cell in room.cellsInside)
             {
-                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                cube.transform.position = new Vector3(cell.x, 1f, cell.y);
-                cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                sphere.transform.position = new Vector3(cell.x, 1f, cell.y);
+                sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
             }
         }
     }

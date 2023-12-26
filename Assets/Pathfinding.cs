@@ -20,49 +20,49 @@ public class Pathfinding
         museumSizeX = Museum.grid.GetLength(0);
         museumSizeY = Museum.grid.GetLength(1);
     }
-    private List<Node> returnOpenCells(Node currentNode, bool[,] closedListCheck, Vector2Int end)
+    private List<AStarNode> returnOpenCells(AStarNode currentAStarNode, bool[,] closedListCheck, Vector2Int end)
     {
-        List<Node> returnList = new List<Node>();
-        checkAndEnqueue(currentNode.x, currentNode.y - 1, Museum.grid[currentNode.x, currentNode.y].bWall);
-        checkAndEnqueue(currentNode.x - 1, currentNode.y, Museum.grid[currentNode.x, currentNode.y].lWall);
+        List<AStarNode> returnList = new List<AStarNode>();
+        checkAndEnqueue(currentAStarNode.x, currentAStarNode.y - 1, Museum.grid[currentAStarNode.x, currentAStarNode.y].bWall);
+        checkAndEnqueue(currentAStarNode.x - 1, currentAStarNode.y, Museum.grid[currentAStarNode.x, currentAStarNode.y].lWall);
         try
         {
-            checkAndEnqueue(currentNode.x, currentNode.y + 1, Museum.grid[currentNode.x, currentNode.y + 1].bWall);
+            checkAndEnqueue(currentAStarNode.x, currentAStarNode.y + 1, Museum.grid[currentAStarNode.x, currentAStarNode.y + 1].bWall);
         }
         catch (IndexOutOfRangeException e) { }
         try
         {
-            checkAndEnqueue(currentNode.x + 1, currentNode.y, Museum.grid[currentNode.x + 1, currentNode.y].lWall);
+            checkAndEnqueue(currentAStarNode.x + 1, currentAStarNode.y, Museum.grid[currentAStarNode.x + 1, currentAStarNode.y].lWall);
         }
         catch (IndexOutOfRangeException e) { }
         void checkAndEnqueue(int x, int y, Occupation wallCondition)
         {
             if (x >= 0 && x < museumSizeX && y >= 0 && y < museumSizeY && wallCondition != Occupation.Hard && Museum.grid[x, y].occupation != Occupation.Hard && !closedListCheck[x, y])
             {
-                returnList.Add(new Node(Museum.grid[x, y], currentNode, end));
+                returnList.Add(new AStarNode(Museum.grid[x, y], currentAStarNode, end));
             }
         }
         return returnList;
     }
-    public List<Node> AStarSolve(Vector2Int start, Vector2Int end)
+    public List<AStarNode> AStarSolve(Vector2Int start, Vector2Int end)
     {
-        List<Node> openList = new List<Node>();
-        List<Node> closedList = new List<Node>();
+        List<AStarNode> openList = new List<AStarNode>();
+        List<AStarNode> closedList = new List<AStarNode>();
         bool[,] closedListCheck = new bool[museumSizeX, museumSizeY];
         bool[,] openListCheck = new bool[museumSizeX, museumSizeY];
-        List<Node> orderedOpenList = new List<Node>();
-        openList.Add(new Node(start, end));
+        List<AStarNode> orderedOpenList = new List<AStarNode>();
+        openList.Add(new AStarNode(start, end));
         while (openList.Count() != 0)
         {
             orderedOpenList = openList.OrderBy(o => o.f).ToList();
-            Node current = orderedOpenList[0];
+            AStarNode current = orderedOpenList[0];
             if (current.x == end.x && current.y == end.y)
             {
                 closedList.Add(current);
                 break;
             }
             openList.Remove(current);
-            List<Node> successorList = returnOpenCells(current, closedListCheck, end);
+            List<AStarNode> successorList = returnOpenCells(current, closedListCheck, end);
             for (int i = 0; i < successorList.Count(); i++)
             {
                 int successorCost = current.g + 1;
@@ -93,11 +93,11 @@ public class Pathfinding
             closedList.Add(current);
             closedListCheck[current.x, current.y] = true;
         }
-        List<Node> finalList = new List<Node>();
+        List<AStarNode> finalList = new List<AStarNode>();
         finalList = FinalList(closedList[closedList.Count() - 1], finalList);
         return (finalList);
         
-        List<Node> FinalList(Node current, List<Node> finalList)
+        List<AStarNode> FinalList(AStarNode current, List<AStarNode> finalList)
         {
             finalList.Add(current);
             if (current.parent != null)
@@ -109,15 +109,15 @@ public class Pathfinding
     }
 }
 
-public class Node : Pathfinding
+public class AStarNode : Pathfinding
 {
     public int x;
     public int y;
-    public int g; // g cost - cost to move to the node
+    public int g; // g cost - cost to move to the AStarNode
     public double h; // h cost - distance from the end
     public double f; // f cost - combination of g and h
-    public Node parent;
-    public Node(Cell cell, Node cur, Vector2Int end)
+    public AStarNode parent;
+    public AStarNode(Cell cell, AStarNode cur, Vector2Int end)
     {
         x = cell.x;
         y = cell.y;
@@ -126,7 +126,7 @@ public class Node : Pathfinding
         h = hCost(new Vector2Int(cell.x, cell.y), end);
         f = fCost(new Vector2Int(cell.x, cell.y), end);
     }
-    public Node(Vector2Int start, Vector2Int end)
+    public AStarNode(Vector2Int start, Vector2Int end)
     {
         x = start.x;
         y = start.y;
@@ -145,10 +145,10 @@ public class Node : Pathfinding
         double fCost = g + hCost(startPos, endPos);
         return fCost;
     }
-    public static List<Vector2Int> convertToVector2Int(List<Node> inList)
+    public static List<Vector2Int> convertToVector2Int(List<AStarNode> inList)
     {
         List<Vector2Int> convList = new List<Vector2Int>();
-        foreach (Node n in inList)
+        foreach (AStarNode n in inList)
         {
             convList.Add(new Vector2Int(n.x, n.y));
         }

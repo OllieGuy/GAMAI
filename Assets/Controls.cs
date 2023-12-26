@@ -5,6 +5,7 @@ using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
 
 public class Controls : MonoBehaviour
 {
@@ -60,7 +61,20 @@ public class Controls : MonoBehaviour
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
                 {
-                    agent.SetDestination(hit.point);
+                    //agent.SetDestination(hit.point);
+                    NavMeshPath path = new();
+                    agent.CalculatePath(hit.point, path);
+                    Vector3[] pathWaypoints = new Vector3[path.corners.Length];
+                    for (int i = 0; i < path.corners.Length; i++)
+                    {
+                        pathWaypoints[i] = path.corners[i];
+                    }
+                    foreach(Vector3 point in pathWaypoints)
+                    {
+                        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        sphere.transform.position = point;
+                        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                    }
                 }
             }
             if (Input.GetKeyDown(KeyCode.Q))
@@ -76,10 +90,9 @@ public class Controls : MonoBehaviour
                         endNavPoint.x = (int)Mathf.Round(targetPos.x);
                         endNavPoint.y = (int)Mathf.Round(targetPos.z);
                         Pathfinding p = new Pathfinding();
-                        List<Vector2Int> path = Node.convertToVector2Int(p.AStarSolve(startNavPoint, endNavPoint));
+                        List<Vector2Int> path = AStarNode.convertToVector2Int(p.AStarSolve(startNavPoint, endNavPoint));
                         foreach (Vector2Int v in path)
                         {
-                            //Debug.Log("23vbbw");
                             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
                             cube.transform.position = new Vector3(v.x, 0.5f, v.y);
                             cube.transform.localScale = new Vector3(1f, 0.1f, 1f);
