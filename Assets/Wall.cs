@@ -26,8 +26,8 @@ public class Wall
     public void draw()
     {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = new Vector3((float)(startPos.x + endPos.x) / 2 - 0.5f, 2f, (float)(startPos.y + endPos.y) / 2 - 0.5f);
-        cube.transform.localScale = new Vector3(Math.Abs(startPos.x - endPos.x) + 0.01f, 3, Math.Abs(startPos.y - endPos.y) + 0.01f);
+        cube.transform.position = new Vector3((float)(startPos.x + endPos.x) / 2 - 0.5f, 1f, (float)(startPos.y + endPos.y) / 2 - 0.5f);
+        cube.transform.localScale = new Vector3(Math.Abs(startPos.x - endPos.x) + 0.01f, 1, Math.Abs(startPos.y - endPos.y) + 0.01f);
         if (isDoorway)
         {
             cube.GetComponent<MeshRenderer>().material = doorwayMaterial;

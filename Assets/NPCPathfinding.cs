@@ -7,8 +7,9 @@ using UnityEngine.AI;
 public class NPCPathfinding
 {
     private NavMeshAgent agent;
-    private float speed = 3f;
+    private float speed = 1.7f;
     public Vector3[] currentPath;
+    private float[] magnitudeList;
     public Vector3 currentTargetInPath;
     public Vector3 target;
     public int pathLength;
@@ -28,23 +29,28 @@ public class NPCPathfinding
             return null;
         }
         Vector3[] pathWaypoints = new Vector3[path.corners.Length];
-        for (int i = 0; i < path.corners.Length; i++)
+        magnitudeList = new float[path.corners.Length];
+        pathWaypoints[0] = path.corners[0];
+        magnitudeList[0] = 0;
+        for (int i = 1; i < path.corners.Length; i++)
         {
             pathWaypoints[i] = path.corners[i];
+            magnitudeList[i] = (pathWaypoints[i] - pathWaypoints[i - 1]).magnitude;
+            Debug.Log(magnitudeList[i]);
         }
         foreach (Vector3 point in pathWaypoints)
         {
             GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.transform.position = point;
             sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            sphere.GetComponent<SphereCollider>().enabled = false;
         }
         pathLength = pathWaypoints.Length - 1; //KEEP AN EYE ON THIS IN CASE IT BREAKS THINGS
         return pathWaypoints;
     }
     public Vector3 moveTowardsCurrentTarget()
     {
-        //Debug.Log((agent.transform.position - Vector3.MoveTowards(agent.transform.position, currentTargetInPath, speed * Time.deltaTime)).magnitude);
-        Vector3 newPos = Vector3.MoveTowards(agent.transform.position, currentTargetInPath, speed * Time.deltaTime * GameTimer.GameTimeScale);
+        Vector3 newPos = agent.transform.position + (((currentTargetInPath - currentPath[currentTargetIndex - 1]) * speed) / magnitudeList[currentTargetIndex] * Time.deltaTime * GameTimer.GameTimeScale);
         return (newPos);
     }
 }

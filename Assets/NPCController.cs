@@ -12,7 +12,7 @@ public class NPCController : MonoBehaviour
         npc = new NPC(navMeshAgent);
         npc.gameTimer = GetComponent<GameTimer>();
         npc.state = new MoveState(npc);
-        npc.state.enterState(new Vector3(6f, 0.5f, 1.5f));
+        npc.state.enterState(new Vector3(2f, 0.5f, 2f));
     }
 
     void Update()

@@ -36,7 +36,7 @@ public abstract class NPCState
 
 public class MoveState : NPCState
 {
-    private float sqrAcceptableReachedRadius = 0.05f; //ARBITARY VALUE ALERT!!! BEEP BEEP BEEP
+    private float sqrAcceptableReachedRadius = 0.001f; //ARBITARY VALUE ALERT!!! BEEP BEEP BEEP
     public MoveState(NPC npc) : base(npc){}
     public override void enterState()
     {
@@ -59,6 +59,7 @@ public class MoveState : NPCState
     {
         Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget();
         npc.gameObj.transform.position = currentPos;
+        inRangeOfCurrentTargetInPathCalculations(currentPos);
         requiredUpdateCheck();
     }
     public override void tickUpdate()
@@ -68,11 +69,27 @@ public class MoveState : NPCState
         targetPosition.y = npc.gameObj.transform.position.y;
         Quaternion targetRotation = Quaternion.LookRotation(targetPosition - npc.gameObj.transform.position);
         npc.gameObj.transform.rotation = targetRotation;
-        if (inRangeOfCurrentTargetInPath(currentPos))
+        //inRangeOfCurrentTargetInPathCalculations(currentPos);
+        npc.perception.fireRaycasts(npc.gameObj.transform);
+        //Debug.Log("tick");
+    }
+    public override void turnUpdate()
+    {
+        //Debug.Log("turn");
+    }
+    public override void exitState()
+    {
+
+    }
+
+    private bool inRangeOfCurrentTargetInPathCalculations(Vector3 currentPos)
+    {
+        Vector2 dif = new Vector2(currentPos.x,currentPos.z) - new Vector2(npc.pathfinding.currentTargetInPath.x, npc.pathfinding.currentTargetInPath.z);
+        if (dif.sqrMagnitude <= sqrAcceptableReachedRadius)
         {
             if (npc.pathfinding.currentTargetIndex != npc.pathfinding.pathLength)
             {
-                //Debug.Log("moving to next node");
+                Debug.Log("moving to next node");
                 npc.pathfinding.currentTargetIndex++;
                 npc.pathfinding.currentTargetInPath = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
             }
@@ -82,25 +99,6 @@ public class MoveState : NPCState
                 //Debug.Log("reached target");
                 npc.state = new VisitState(npc);
             }
-        }
-        npc.perception.fireRaycasts(npc.gameObj.transform);
-        Debug.Log("tick");
-    }
-    public override void turnUpdate()
-    {
-        Debug.Log("turn");
-    }
-    public override void exitState()
-    {
-
-    }
-
-    private bool inRangeOfCurrentTargetInPath(Vector3 currentPos)
-    {
-        Vector2 dif = new Vector2(currentPos.x,currentPos.z) - new Vector2(npc.pathfinding.currentTargetInPath.x, npc.pathfinding.currentTargetInPath.z);
-        if (dif.sqrMagnitude <= sqrAcceptableReachedRadius)
-        {
-            Debug.Log("in range");
             return true;
         }
         return false;
