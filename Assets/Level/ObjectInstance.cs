@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ObjectInstance : MonoBehaviour
 {
@@ -29,7 +31,7 @@ public class ObjectInstance : MonoBehaviour
         {
             combine[i].mesh = meshFilters[i].sharedMesh;
             combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-            meshFilters[i].gameObject.SetActive(false);
+            Destroy(meshFilters[i].gameObject);
         }
         Mesh mesh = new Mesh();
         mesh.CombineMeshes(combine);
@@ -38,6 +40,7 @@ public class ObjectInstance : MonoBehaviour
 
         gameObject.GetComponent<MeshRenderer>().material = artefact.material;
         gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
+        //NavMeshModifier a = gameObject.AddComponent<NavMeshModifier>();
     }
     public void updateMuseumGridWithHard(bool isUpdate)
     {

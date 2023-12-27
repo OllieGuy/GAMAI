@@ -16,6 +16,7 @@ public class Controls : MonoBehaviour
     [SerializeField] NavMeshSurface surface;
     [SerializeField] Artefact[] artefacts;
     [SerializeField] Material doorwayMaterial;
+    [SerializeField] GameObject testNPC; //THIS IS TEMPORARY FOR TESTING A SINGLE NPC
     Dictionary<string, Artefact> artefactDictionary = new Dictionary<string, Artefact>();
     public bool meshUpdate = false;
     private static Vector2Int startNavPoint = new Vector2Int(-1,-1);
@@ -57,25 +58,26 @@ public class Controls : MonoBehaviour
             }
             if (Input.GetMouseButtonDown(1))
             {
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
-                {
-                    //agent.SetDestination(hit.point);
-                    NavMeshPath path = new();
-                    agent.CalculatePath(hit.point, path);
-                    Vector3[] pathWaypoints = new Vector3[path.corners.Length];
-                    for (int i = 0; i < path.corners.Length; i++)
-                    {
-                        pathWaypoints[i] = path.corners[i];
-                    }
-                    foreach(Vector3 point in pathWaypoints)
-                    {
-                        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        sphere.transform.position = point;
-                        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-                    }
-                }
+                testNPC.SetActive(true);
+                //Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                //RaycastHit hit;
+                //if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
+                //{
+                //    //agent.SetDestination(hit.point);
+                //    NavMeshPath path = new();
+                //    agent.CalculatePath(hit.point, path);
+                //    Vector3[] pathWaypoints = new Vector3[path.corners.Length];
+                //    for (int i = 0; i < path.corners.Length; i++)
+                //    {
+                //        pathWaypoints[i] = path.corners[i];
+                //    }
+                //    foreach (Vector3 point in pathWaypoints)
+                //    {
+                //        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                //        sphere.transform.position = point;
+                //        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                //    }
+                //}
             }
             if (Input.GetKeyDown(KeyCode.Q))
             {

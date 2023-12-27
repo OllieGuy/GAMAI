@@ -7,6 +7,8 @@ TagManager:
   - Artefact
   - Artefact Representation
   - Interaction Point
+  - NPC
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -15,9 +17,9 @@ TagManager:
   - Water
   - UI
   - Artefact
-  - 
-  - 
-  - 
+  - Wall
+  - Doorway
+  - Ground
   - 
   - 
   - 
