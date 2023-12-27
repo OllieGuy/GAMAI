@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -14,9 +16,10 @@ public class NPC
     public NPCPathfinding pathfinding;
     public NPCState state;
     public GameTimer gameTimer;
+    public GameTimer globalGameTimer;
     public Perception perception;
     public List<Artefact> visitedArtefacts = new List<Artefact>();
-    public List<ArtefactMemory> memorisedArtefacts = new List<ArtefactMemory>();
+    public List<ObjectMemory> memorisedObjects = new List<ObjectMemory>();
     public List<Room> relevantRooms = new List<Room>();
     public NPC(NavMeshAgent _navMeshAgent)
     {
@@ -29,9 +32,32 @@ public class NPC
         pathfinding = new NPCPathfinding(_navMeshAgent);
         perception = new Perception();
     }
+    public void findAndUpdateObjectWithinMemory(ObjectInstance _seenObject)
+    {
+        int curIndex = memoryIndexCheck();
+        if (curIndex != -1)
+        {
+            memorisedObjects[curIndex].seenTime = globalGameTimer.gameTime;
+        }
+        else
+        {
+            memorisedObjects.Add(new ObjectMemory(globalGameTimer.gameTime, _seenObject));
+        }
+        int memoryIndexCheck()
+        {
+            int i = 0;
+            foreach (ObjectMemory om in memorisedObjects)
+            {
+                if (om.seenObject == _seenObject)
+                { return i; }
+                i++;
+            }
+            return -1;
+        }
+    }
     void calculateDesire()
     {
-        foreach (ArtefactMemory a in memorisedArtefacts)
+        foreach (ObjectMemory o in memorisedObjects)
         {
 
         }
@@ -43,6 +69,10 @@ public class NPC
     bool checkForFake(Artefact artefact)
     {
         return false;
+    }
+    void updateHappiness(float change)
+    {
+
     }
 }
 public enum Interest
@@ -57,14 +87,14 @@ public enum FrameTickTurn
     Tick,
     Turn
 }
-public class ArtefactMemory
+public class ObjectMemory
 {
     public float desirability;
-    public DateTime seenTime;
-    public Artefact artefact;
-    public ArtefactMemory(DateTime _seenTime, Artefact _artefact)
+    public float seenTime;
+    public ObjectInstance seenObject;
+    public ObjectMemory(float _seenTime, ObjectInstance _seenObject)
     {
         seenTime = _seenTime;
-        artefact = _artefact;
+        seenObject = _seenObject;
     }
 }

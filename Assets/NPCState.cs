@@ -69,8 +69,13 @@ public class MoveState : NPCState
         targetPosition.y = npc.gameObj.transform.position.y;
         Quaternion targetRotation = Quaternion.LookRotation(targetPosition - npc.gameObj.transform.position);
         npc.gameObj.transform.rotation = targetRotation;
-        //inRangeOfCurrentTargetInPathCalculations(currentPos);
-        npc.perception.fireRaycasts(npc.gameObj.transform);
+        //inRangeOfCurrentTargetInPathCalculations(currentPos); //requires a larger tolerance
+        List<ObjectInstance> percievedObjects = Perception.convertToObjectInstanceList(npc.perception.fireRaycasts(npc.gameObj.transform));
+        foreach(ObjectInstance oi in percievedObjects)
+        {
+            npc.findAndUpdateObjectWithinMemory(oi);
+        }
+        Debug.Log(npc.memorisedObjects.Count);
         //Debug.Log("tick");
     }
     public override void turnUpdate()

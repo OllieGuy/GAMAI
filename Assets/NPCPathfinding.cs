@@ -36,7 +36,6 @@ public class NPCPathfinding
         {
             pathWaypoints[i] = path.corners[i];
             magnitudeList[i] = (pathWaypoints[i] - pathWaypoints[i - 1]).magnitude;
-            Debug.Log(magnitudeList[i]);
         }
         foreach (Vector3 point in pathWaypoints)
         {

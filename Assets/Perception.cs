@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Perception
@@ -12,29 +13,47 @@ public class Perception
         List<GameObject> percievedObjects = new List<GameObject>();
         float angleStep = angleSpread / (numberOfRaycasts - 1);
         int wallLayerMask = LayerMask.NameToLayer("Wall");
-       
+        Vector3 raycastPos = new Vector3(transform.position.x, 1f, transform.position.z);
+        
         for (int i = 0; i < numberOfRaycasts; i++)
         { 
-            Debug.Log("tttt");
             float currentAngle = -angleSpread / 2f + i * angleStep;
-            Vector3 rayDirection = Quaternion.Euler(0f, currentAngle, 0f) * transform.forward;
+            Vector3 rayDirection = (Quaternion.Euler(0f, currentAngle, 0f) * transform.forward)*10;
             RaycastHit hit;
-            if (Physics.Raycast(transform.position, rayDirection * 10, out hit, 10f, wallLayerMask))
+            if (Physics.Raycast(raycastPos, rayDirection, out hit, 10f))
             {
                 if (hit.collider.CompareTag("Wall"))
                 {
-                    Debug.Log("Hit " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
+                    //Debug.Log("Hit " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
                 }
                 if (hit.collider.CompareTag("Artefact") || hit.collider.CompareTag("NPC"))
                 {
-                    percievedObjects.Add(hit.collider.gameObject);
-                    Debug.Log("Hit " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
+                    if (!percievedObjects.Contains(hit.collider.gameObject)) //change to the NPCs memory
+                    {
+                        Debug.Log("Hit new " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
+                        percievedObjects.Add(hit.collider.gameObject);
+                        Debug.DrawRay(raycastPos, rayDirection, Color.red); //DEBUG ONLY
+                    }
+                    else
+                    {
+                        Debug.DrawRay(raycastPos, rayDirection, Color.yellow); //DEBUG ONLY
+                    }
                 }
-                
+                else
+                {
+                    Debug.DrawRay(raycastPos, rayDirection, Color.green); //DEBUG ONLY
+                }
             }
-
-            Debug.DrawRay(transform.position, rayDirection * 10, Color.green);
         }
         return percievedObjects;
+    }
+    public static List<ObjectInstance> convertToObjectInstanceList(List<GameObject> inList)
+    {
+        List<ObjectInstance> result = new List<ObjectInstance>();
+        foreach(GameObject obj in inList)
+        {
+            result.Add(obj.GetComponent<ObjectInstance>());
+        }
+        return result;
     }
 }
