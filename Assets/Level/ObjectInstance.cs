@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ObjectInstance : MonoBehaviour
 {
-    public Artefact artefact;
+    public Object theObject;
     public GameObject warning;
     [SerializeField] GameObject interactionPos;
     [SerializeField] public List<Vector2Int> worldFootprint = new List<Vector2Int>(); //The first entry of this list is the root, and is used to find things
@@ -17,7 +18,7 @@ public class ObjectInstance : MonoBehaviour
 
     void Start()
     {
-        foreach (LocalPosition v in artefact.localFootprint)
+        foreach (LocalPosition v in theObject.localFootprint)
         {
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(v.xOffset, 0f, v.yOffset);
@@ -38,7 +39,7 @@ public class ObjectInstance : MonoBehaviour
         transform.GetComponent<MeshFilter>().sharedMesh = mesh;
         transform.gameObject.SetActive(true);
 
-        gameObject.GetComponent<MeshRenderer>().material = artefact.material;
+        gameObject.GetComponent<MeshRenderer>().material = theObject.material;
         gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
         //NavMeshModifier a = gameObject.AddComponent<NavMeshModifier>();
     }
@@ -68,7 +69,7 @@ public class ObjectInstance : MonoBehaviour
     public void createObject(Vector2Int placePos)
     {
         int roomIndex = Room.locateRoom(Museum.grid[placePos.x,placePos.y]);
-        worldFootprint = artefact.calculateWorldFootprint(placePos);
+        worldFootprint = theObject.calculateWorldFootprint(placePos);
         if (roomIndex != -1)
         {
             Museum.roomsInMuseum[roomIndex].addObjectToRoom(this);
@@ -121,6 +122,18 @@ public class ObjectInstance : MonoBehaviour
             instWarn.transform.parent = transform;
             instWarn.tag = "Interaction Point";
         }
+    }
+
+    public Vector3? returnOpenInteractionPosition()
+    {
+        foreach (TranslatedPosition tp in worldInteractionPositions)
+        {
+            if(!tp.beingUsed)
+            {
+                return new Vector3(tp.position.x, 0.5f, tp.position.y); //returns the first open one from the list, could make it take a pos and get closest
+            }
+        }
+        return null;
     }
 }
 

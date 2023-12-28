@@ -8,7 +8,7 @@ public class GameTimer : MonoBehaviour
     public int tickCount;
     private static float timeScale = 1f;
     private static float ticksPerSecond = 2f;
-    private static int ticksPerTurn = 20;
+    private static int ticksPerTurn = 5;
 
     public static float GameTimeScale { get { return timeScale; } }
     public static float TickTime { get { return (1/ticksPerSecond)/timeScale; } } //dividing by time is gonna hurt performance with faster time scale
@@ -21,5 +21,10 @@ public class GameTimer : MonoBehaviour
     void Update()
     {
         gameTime += Time.deltaTime * timeScale;
+    }
+    public void resetCounter()
+    {
+        gameTime = 0;
+        tickCount = 0;
     }
 }

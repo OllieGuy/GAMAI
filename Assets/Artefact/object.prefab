@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: -1371129746913926017}
   - component: {fileID: -46321341305462570}
   m_Layer: 6
-  m_Name: artefact
-  m_TagString: Artefact
+  m_Name: object
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0829a6d49c174ca48a92b4a9b202c34c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  artefact: {fileID: 0}
+  theObject: {fileID: 0}
   warning: {fileID: 840349137026566557, guid: 1c8ff68e22a93c64fb89a9ca226a7185, type: 3}
   interactionPos: {fileID: 5497841684599085660, guid: 45fc4a9f17116504b992992d34ebff8e, type: 3}
   worldFootprint: []

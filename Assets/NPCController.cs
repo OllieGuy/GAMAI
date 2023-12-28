@@ -13,11 +13,15 @@ public class NPCController : MonoBehaviour
         npc.gameTimer = GetComponent<GameTimer>();
         npc.globalGameTimer = GameObject.Find("Global Timer").GetComponent<GameTimer>();
         npc.state = new MoveState(npc);
-        npc.state.enterState(new Vector3(2f, 0.5f, 2f));
+        bool a = npc.state.enterState(new Vector3(2f, 0.5f, 2f));
+        if(!a)
+        {
+            Debug.Log("tgejgiej4in");
+        }
     }
 
     void Update()
     {
-        npc.state.frameUpdate();
+        npc.doUpdate();
     }
 }

@@ -15,7 +15,9 @@ MonoBehaviour:
   objectName: Blue Block
   description: blue
   value: 20
-  rarity: 0
+  baseHappinessValue: 0.14286803
+  turnsInMemory: 5
+  rarity: 1
   localFootprint:
   - xOffset: 0
     yOffset: 0
@@ -28,7 +30,7 @@ MonoBehaviour:
     yOffset: 0
   - xOffset: 0
     yOffset: -1
-  type: 2
-  authenticity: 1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: 971f0a8bc97475c4a9e9450514ecf96a, type: 2}
+  type: 2
+  authenticity: 1

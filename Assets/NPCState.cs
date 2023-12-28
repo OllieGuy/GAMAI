@@ -17,7 +17,7 @@ public abstract class NPCState
     public abstract void tickUpdate();
     public abstract void turnUpdate();
     public abstract void exitState();
-    public void requiredUpdateCheck()
+    protected void requiredUpdateCheck()
     {
         float tickTime = GameTimer.TickTime;
         if (npc.gameTimer.gameTime >= tickTime)
@@ -29,8 +29,15 @@ public abstract class NPCState
             {
                 npc.state.turnUpdate();
                 npc.gameTimer.tickCount = 0;
+                npc.turnsInCurrentState++;
+                npc.turnsSinceSpawn++;
             }
         }
+    }
+    protected void newStateEntered()
+    {
+        npc.gameTimer.resetCounter();
+        npc.turnsInCurrentState = 0;
     }
 }
 
@@ -44,6 +51,7 @@ public class MoveState : NPCState
     }
     public override bool enterState(Vector3 _targetPos)
     {
+        newStateEntered();
         Vector3[] path = npc.pathfinding.findPath(_targetPos);
         if (path == null)
         {
@@ -64,23 +72,18 @@ public class MoveState : NPCState
     }
     public override void tickUpdate()
     {
-        Vector3 currentPos = npc.gameObj.transform.position;
         Vector3 targetPosition = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
         targetPosition.y = npc.gameObj.transform.position.y;
         Quaternion targetRotation = Quaternion.LookRotation(targetPosition - npc.gameObj.transform.position);
         npc.gameObj.transform.rotation = targetRotation;
         //inRangeOfCurrentTargetInPathCalculations(currentPos); //requires a larger tolerance
-        List<ObjectInstance> percievedObjects = Perception.convertToObjectInstanceList(npc.perception.fireRaycasts(npc.gameObj.transform));
-        foreach(ObjectInstance oi in percievedObjects)
-        {
-            npc.findAndUpdateObjectWithinMemory(oi);
-        }
-        Debug.Log(npc.memorisedObjects.Count);
-        //Debug.Log("tick");
+        //ADD FUNCTION THAT VALIDATES PATH IS OKAY
+        npc.percieve();
     }
     public override void turnUpdate()
     {
-        //Debug.Log("turn");
+        npc.updateMemory();
+        npc.calculateDesire();
     }
     public override void exitState()
     {
@@ -94,7 +97,7 @@ public class MoveState : NPCState
         {
             if (npc.pathfinding.currentTargetIndex != npc.pathfinding.pathLength)
             {
-                Debug.Log("moving to next node");
+                //Debug.Log("moving to next node");
                 npc.pathfinding.currentTargetIndex++;
                 npc.pathfinding.currentTargetInPath = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
             }
@@ -115,6 +118,7 @@ public class VisitState : NPCState
     public VisitState(NPC npc) : base(npc) { }
     public override void enterState()
     {
+        newStateEntered();
         Debug.Log("Visit");
     }
     public override bool enterState(Vector3 _targetPos)
@@ -127,11 +131,79 @@ public class VisitState : NPCState
     }
     public override void tickUpdate()
     {
+        //validate object is there
         Debug.Log("Visitin");
     }
     public override void turnUpdate()
     {
+        npc.updateMemory();
+        //Auth Check
+        //desire
         Debug.Log("really visitin");
+    }
+    public override void exitState()
+    {
+
+    }
+}
+
+public class LeaveState : NPCState
+{
+    public LeaveState(NPC npc) : base(npc) { }
+    public override void enterState()
+    {
+        newStateEntered();
+        Debug.Log("Leave");
+    }
+    public override bool enterState(Vector3 _targetPos)
+    {
+        return true;
+    }
+    public override void frameUpdate()
+    {
+        requiredUpdateCheck();
+    }
+    public override void tickUpdate()
+    {
+        Debug.Log("Leavin");
+    }
+    public override void turnUpdate()
+    {
+        npc.updateMemory();
+        Debug.Log("really leavin");
+    }
+    public override void exitState()
+    {
+
+    }
+}
+
+public class PanicState : NPCState
+{
+    public PanicState(NPC npc) : base(npc) { }
+    public override void enterState()
+    {
+        newStateEntered();
+        //try to enter leave state
+        //choose random pos from open cells on the grid
+        Debug.Log("Leave");
+    }
+    public override bool enterState(Vector3 _targetPos)
+    {
+        return true;
+    }
+    public override void frameUpdate()
+    {
+        requiredUpdateCheck();
+    }
+    public override void tickUpdate()
+    {
+        Debug.Log("Leavin");
+    }
+    public override void turnUpdate()
+    {
+        npc.updateMemory();
+        Debug.Log("really leavin");
     }
     public override void exitState()
     {

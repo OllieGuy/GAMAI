@@ -10,9 +10,6 @@ public class Artefact : Object
 {
     public ArtefactType type;
     public bool authenticity = true;
-
-    public Mesh mesh;
-    public Material material;
 }
 public enum ArtefactType
 {

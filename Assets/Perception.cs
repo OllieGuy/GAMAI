@@ -26,11 +26,11 @@ public class Perception
                 {
                     //Debug.Log("Hit " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
                 }
-                if (hit.collider.CompareTag("Artefact") || hit.collider.CompareTag("NPC"))
+                if (hit.collider.CompareTag("Artefact") || hit.collider.CompareTag("NPC") || hit.collider.CompareTag("Donation Box") || hit.collider.CompareTag("Furniture"))
                 {
                     if (!percievedObjects.Contains(hit.collider.gameObject)) //change to the NPCs memory
                     {
-                        Debug.Log("Hit new " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
+                        //Debug.Log("Hit new " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
                         percievedObjects.Add(hit.collider.gameObject);
                         Debug.DrawRay(raycastPos, rayDirection, Color.red); //DEBUG ONLY
                     }

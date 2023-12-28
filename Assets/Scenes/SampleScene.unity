@@ -292,13 +292,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   plane: {fileID: 272392162}
   cam: {fileID: 963194227}
-  artefact: {fileID: 6249456565087121536, guid: ea8bbb63b4cfeaa4a812ace8b3036bb7, type: 3}
+  baseObject: {fileID: 6249456565087121536, guid: ea8bbb63b4cfeaa4a812ace8b3036bb7, type: 3}
   agent: {fileID: 0}
   surface: {fileID: 272392163}
-  artefacts:
+  objects:
   - {fileID: 11400000, guid: c10c7cc4aadd7b54ea5c1ee8cc14ba30, type: 2}
   - {fileID: 11400000, guid: 76a34781dff4e314d9e7f6a6a2b33517, type: 2}
   - {fileID: 11400000, guid: fe44cd160ceda3f498df23fcfa7f89f9, type: 2}
+  - {fileID: 11400000, guid: 9b6c61614903feb41820bceec766a4b9, type: 2}
   doorwayMaterial: {fileID: 2100000, guid: 7563f7997a7bdb64182ecdee16f3ec3c, type: 2}
   testNPC: {fileID: 1546020785}
   meshUpdate: 0

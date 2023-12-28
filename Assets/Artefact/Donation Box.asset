@@ -9,19 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Red Block
-  m_EditorClassIdentifier: Assembly-CSharp::Artefact
-  objectName: Red Block
-  description: red
-  value: 100
-  baseHappinessValue: 0.2431931
-  turnsInMemory: 10
-  rarity: 2
+  m_Script: {fileID: 11500000, guid: 0f5ff81c6f7a72a44b868fc93058dc45, type: 3}
+  m_Name: Donation Box
+  m_EditorClassIdentifier: 
+  objectName: Donation Box
+  description: Box for donating
+  value: 10
+  baseHappinessValue: 0
+  turnsInMemory: 100
+  rarity: 0
   localFootprint:
   - xOffset: 0
-    yOffset: 0
-  - xOffset: 1
     yOffset: 0
   localInteractionPositions:
   - xOffset: -1
@@ -29,14 +27,8 @@ MonoBehaviour:
   - xOffset: 0
     yOffset: 1
   - xOffset: 1
-    yOffset: 1
-  - xOffset: 2
     yOffset: 0
-  - xOffset: 1
-    yOffset: -1
   - xOffset: 0
     yOffset: -1
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  material: {fileID: 2100000, guid: ba7799520d4c98b479198e1b68e76fde, type: 2}
-  type: 0
-  authenticity: 1
+  material: {fileID: 2100000, guid: 7fdf9303144f69443a1d418b1c3b9b63, type: 2}

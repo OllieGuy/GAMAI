@@ -19,7 +19,7 @@ public class NPCPathfinding
         agent = _nMAgent;
     }
 
-    public Vector3[] findPath(Vector3 targetPOS)
+    public Vector3[] findPath(Vector3 targetPOS) //for some reason will calculate path to closest point rather than not working
     {
         NavMeshPath path = new();
         bool pathIsPossible = agent.CalculatePath(targetPOS, path);

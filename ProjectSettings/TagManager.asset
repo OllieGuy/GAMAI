@@ -9,6 +9,8 @@ TagManager:
   - Interaction Point
   - NPC
   - Wall
+  - Furniture
+  - Donation Box
   layers:
   - Default
   - TransparentFX

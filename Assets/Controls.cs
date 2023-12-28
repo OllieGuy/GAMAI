@@ -11,22 +11,24 @@ public class Controls : MonoBehaviour
 {
     [SerializeField] Transform plane;
     [SerializeField] Camera cam;
-    [SerializeField] GameObject artefact;
+    [SerializeField] GameObject baseObject;
     [SerializeField] NavMeshAgent agent;
     [SerializeField] NavMeshSurface surface;
-    [SerializeField] Artefact[] artefacts;
+    [SerializeField] Object[] objects;
     [SerializeField] Material doorwayMaterial;
     [SerializeField] GameObject testNPC; //THIS IS TEMPORARY FOR TESTING A SINGLE NPC
-    Dictionary<string, Artefact> artefactDictionary = new Dictionary<string, Artefact>();
+    Dictionary<string, Object> objectDictionary = new Dictionary<string, Object>();
     public bool meshUpdate = false;
     private static Vector2Int startNavPoint = new Vector2Int(-1,-1);
 
     void Start()
     {
         Wall.doorwayMaterial = doorwayMaterial;
-        foreach (Artefact a in artefacts)
+        foreach (Object o in objects)
         {
-            artefactDictionary.Add(a.objectName, a);
+            objectDictionary.Add(o.objectName, o);
+            o.baseHappinessValue = MathsFunctions.baseHappinessValue(o.value, o.getRarityMultiplier()); //exec at start means values can be tweaked without having to manually recalc
+            //Debug.Log(o.objectName + ": " + o.baseHappinessValue);
         }
     }
     void Update()
@@ -114,30 +116,40 @@ public class Controls : MonoBehaviour
 
     void placeBlockBasedOnKeyDown(Vector2Int placePos)
     {
-        GameObject theArtefact = null;
-        string artefactToPlace = null;
+        GameObject theObject = null;
+        string objectToPlace = null;
+        string tagToUse = "Untagged";
         if (Input.anyKeyDown)
         {
             if (Input.GetKey(KeyCode.Alpha1))
             {
-                artefactToPlace = "Blue Block";
+                objectToPlace = "Blue Block";
+                tagToUse = "Artefact";
             }
             else if (Input.GetKey(KeyCode.Alpha2))
             {
-                artefactToPlace = "Red Block";
+                objectToPlace = "Red Block";
+                tagToUse = "Artefact";
             }
             else if (Input.GetKey(KeyCode.Alpha3))
             {
-                artefactToPlace = "Yellow Block";
+                objectToPlace = "Yellow Block";
+                tagToUse = "Artefact";
+            }
+            else if (Input.GetKey(KeyCode.Alpha4))
+            {
+                objectToPlace = "Donation Box";
+                tagToUse = "Donation Box";
             }
         }
-        if (artefactToPlace != null)
+        if (objectToPlace != null)
         {
-            if (Object.checkGridForValidHardPlacement(artefactDictionary[artefactToPlace].localFootprint, placePos))
+            if (Object.checkGridForValidHardPlacement(objectDictionary[objectToPlace].localFootprint, placePos))
             {
-                theArtefact = Instantiate(artefact, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
-                ObjectInstance oi = theArtefact.GetComponent<ObjectInstance>();
-                oi.artefact = artefactDictionary[artefactToPlace];
+                theObject = Instantiate(baseObject, new Vector3(placePos.x, 1f, placePos.y), Quaternion.identity);
+                theObject.tag = tagToUse;
+                ObjectInstance oi = theObject.GetComponent<ObjectInstance>();
+                oi.theObject = objectDictionary[objectToPlace];
                 oi.createObject(placePos);
             }
         }

@@ -11,10 +11,14 @@ public class Object : ScriptableObject
     [SerializeField] public string objectName;
     [SerializeField] public string description;
     [SerializeField] public int value;
+    [SerializeField] public float baseHappinessValue;
+    [SerializeField] public int turnsInMemory;
     [SerializeField] public Rarity rarity;
     [SerializeField] public List<LocalPosition> localFootprint = new List<LocalPosition>() { new LocalPosition(0,0)}; //Initialises the root as 0,0, as at least one cell will always be filled
     [SerializeField] protected List<LocalPosition> localInteractionPositions;
 
+    public Mesh mesh;
+    public Material material;
     public List<Vector2Int> calculateWorldFootprint(Vector2Int posInWorld)
     {
         List<Vector2Int> worldFootprint = new List<Vector2Int>();
@@ -63,10 +67,29 @@ public class Object : ScriptableObject
         happinessChange += 0; //interest
         return happinessChange;
     }
+    public float getRarityMultiplier()
+    {
+        switch(rarity)
+        {
+            case Rarity.None:
+                return 0f;
+            case Rarity.Common:
+                return 0.5f;
+            case Rarity.Rare:
+                return 0.65f;
+            case Rarity.Epic:
+                return 0.8f;
+            case Rarity.Legendary:
+                return 1f;
+            default:
+                return 0;
+        }
+    }
 }
 
 public enum Rarity
 {
+    None,
     Common,
     Rare,
     Epic,

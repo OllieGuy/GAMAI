@@ -27,7 +27,7 @@ public class Room
         for (int i = 0; i < countTo; i++) //Do not try to optimise this by having it check the count - it will crash unity
         {
             Vector2Int pos = objectsInRoom[i].worldFootprint.First();
-            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].artefact.calculateValidSoftPlacement(pos);
+            objectsInRoom[i].worldInteractionPositions = objectsInRoom[i].theObject.calculateValidSoftPlacement(pos);
             objectsInRoom[i].updateMuseumGridWithSoft();
             objectsInRoom[i].displayInteractionPoints();
         }
