@@ -12,6 +12,26 @@ public class Room
         cellsInside = _cellsInside;
         objectsInRoom = new List<ObjectInstance>();
     }
+    public void updateRoomGridWithNewRoom()
+    {
+        for (int i = 0; i < Museum.roomGrid.GetLength(0); i++)
+        {
+            for (int j = 0; j < Museum.roomGrid.GetLength(1); j++)
+            {
+                Museum.roomGrid[i, j] = -1;
+            }
+        }
+        int roomIndex = 0;
+        foreach (Room room in Museum.roomsInMuseum)
+        {
+            foreach (Cell cell in room.cellsInside)
+            {
+                Museum.roomGrid[cell.x, cell.y] = roomIndex;
+                //Debug.Log(roomIndex);
+            }
+            roomIndex++;
+        }
+    }
     public void recalculateObjectsInRoom()
     {
         int countTo = objectsInRoom.Count;
@@ -39,19 +59,25 @@ public class Room
     }
     public static int locateRoom(Cell cellInRoom)
     {
-        int roomIndex = 0;
-        foreach (Room room in Museum.roomsInMuseum)
-        {
-            foreach (Cell cell in room.cellsInside)
-            {
-                if (cell == cellInRoom)
-                {
-                    return roomIndex;
-                }
-            }
-            roomIndex++;
-        }
-        return -1;
+        //int roomIndex = 0;
+        //foreach (Room room in Museum.roomsInMuseum)
+        //{
+        //    foreach (Cell cell in room.cellsInside)
+        //    {
+        //        if (cell == cellInRoom)
+        //        {
+        //            return roomIndex;
+        //        }
+        //    }
+        //    roomIndex++;
+        //}
+        //Debug.Log(Museum.roomGrid[cellInRoom.x, cellInRoom.y]);
+        return Museum.roomGrid[cellInRoom.x, cellInRoom.y];
+        //return -1;
+    }
+    public static int locateRoom(Vector2Int positionToFind)
+    {
+        return Museum.roomGrid[positionToFind.x, positionToFind.y];
     }
     public static int locateRoom(ObjectInstance objectToFind)
     {

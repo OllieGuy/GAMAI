@@ -7,12 +7,12 @@ using static UnityEditorInternal.VersionControl.ListControl;
 public abstract class NPCState
 {
     protected NPC npc;
+    public bool endState = false;
     public NPCState(NPC _npc)
     {
         npc = _npc;
     }
     public abstract void enterState();
-    public abstract bool enterState(Vector3 _targetPos);
     public abstract void frameUpdate();
     public abstract void tickUpdate();
     public abstract void turnUpdate();
@@ -34,10 +34,17 @@ public abstract class NPCState
             }
         }
     }
-    protected void newStateEntered()
+    protected void stateExited()
     {
+        //Debug.Log("exiting state");
+        endState = true;
         npc.gameTimer.resetCounter();
-        npc.turnsInCurrentState = 0;
+        //Debug.Log("prev: " + npc.previousDesire + "new: " + npc.currentDesire);
+        //if (npc.previousDesire != npc.currentDesire)
+        //{
+        //    npc.stageOfCurrentDesire = 0;
+        //    npc.gameTimer.resetCounter();
+        //}
     }
 }
 
@@ -47,25 +54,16 @@ public class MoveState : NPCState
     public MoveState(NPC npc) : base(npc){}
     public override void enterState()
     {
-        Debug.Log("Error: should not have entered Move without target");
-    }
-    public override bool enterState(Vector3 _targetPos)
-    {
-        newStateEntered();
-        Vector3[] path = npc.pathfinding.findPath(_targetPos);
-        if (path == null)
-        {
-            return false;
-        }
+        Debug.Log("Enter da move state to go to" + npc.currentGoalPosition);
+        Vector3[] path = npc.pathfinding.findPath(npc.currentGoalPosition);
         npc.pathfinding.currentPath = path;
         npc.pathfinding.currentTargetIndex = 1;
         npc.pathfinding.currentTargetInPath = path[npc.pathfinding.currentTargetIndex];
         npc.state.tickUpdate();
-        return true;
     }
     public override void frameUpdate()
     {
-        Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget();
+        Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget(1.7f);
         npc.gameObj.transform.position = currentPos;
         inRangeOfCurrentTargetInPathCalculations(currentPos);
         requiredUpdateCheck();
@@ -78,18 +76,23 @@ public class MoveState : NPCState
         npc.gameObj.transform.rotation = targetRotation;
         //inRangeOfCurrentTargetInPathCalculations(currentPos); //requires a larger tolerance
         //ADD FUNCTION THAT VALIDATES PATH IS OKAY
-        npc.percieve();
+        if (npc.currentDesire != Desire.Enter && npc.currentDesire != Desire.Leave && npc.currentDesire != Desire.Panic)
+        {
+            npc.percieve();
+        }
     }
     public override void turnUpdate()
     {
         npc.updateMemory();
-        npc.calculateDesire();
+        if (npc.currentDesire == Desire.Wander)
+        {
+            npc.calculateDesire();
+        }
     }
     public override void exitState()
     {
-
+        stateExited();
     }
-
     private bool inRangeOfCurrentTargetInPathCalculations(Vector3 currentPos)
     {
         Vector2 dif = new Vector2(currentPos.x,currentPos.z) - new Vector2(npc.pathfinding.currentTargetInPath.x, npc.pathfinding.currentTargetInPath.z);
@@ -103,13 +106,23 @@ public class MoveState : NPCState
             }
             else
             {
-                npc.gameObj.transform.position = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
+                Vector3 correctPos = new Vector3(npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex].x, 1.5f, npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex].z);
+                npc.gameObj.transform.position = correctPos; // this is making it look weird
                 //Debug.Log("reached target");
-                npc.state = new VisitState(npc);
+                exitState();
             }
             return true;
         }
         return false;
+    }
+    public bool reachablePosition(Vector3 _targetPos)
+    {
+        Vector3[] path = npc.pathfinding.findPath(_targetPos);
+        if (path == null)
+        {
+            return false;
+        }
+        return true;
     }
 }
 
@@ -118,12 +131,7 @@ public class VisitState : NPCState
     public VisitState(NPC npc) : base(npc) { }
     public override void enterState()
     {
-        newStateEntered();
-        Debug.Log("Visit");
-    }
-    public override bool enterState(Vector3 _targetPos)
-    {
-        return true;
+        Debug.Log("Entered Visit STATE");
     }
     public override void frameUpdate()
     {
@@ -131,19 +139,39 @@ public class VisitState : NPCState
     }
     public override void tickUpdate()
     {
-        //validate object is there
-        Debug.Log("Visitin");
+        try
+        {
+            ObjectInstance testIfExists = npc.objectCurrentlyVisiting.objectInstance; //no worky
+        }
+        catch (MissingReferenceException e)
+        {
+            Debug.Log("object destroyed while visiting");
+        }
     }
     public override void turnUpdate()
     {
         npc.updateMemory();
-        //Auth Check
-        //desire
-        Debug.Log("really visitin");
+        if(npc.currentDesire == Desire.Donate)
+        {
+            Debug.Log("Only here to donate");
+            npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc,(DonationBox)npc.objectCurrentlyVisiting.objectInstance.theObject);
+            exitState();
+        }
+        else if (UnityEngine.Random.value > (1 - (npc.turnsInCurrentState * 0.1f)))
+        {
+            Debug.Log("Gross bored");
+            npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc);
+            exitState();
+        }
+        else
+        {
+            npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc);
+        }
+        Debug.Log("really visitin. Current Happiness: " + npc.happiness);
     }
     public override void exitState()
     {
-
+        stateExited();
     }
 }
 
@@ -152,12 +180,7 @@ public class LeaveState : NPCState
     public LeaveState(NPC npc) : base(npc) { }
     public override void enterState()
     {
-        newStateEntered();
         Debug.Log("Leave");
-    }
-    public override bool enterState(Vector3 _targetPos)
-    {
-        return true;
     }
     public override void frameUpdate()
     {
@@ -174,39 +197,61 @@ public class LeaveState : NPCState
     }
     public override void exitState()
     {
-
+        stateExited();
     }
 }
 
-public class PanicState : NPCState
+public class PanicState : NPCState //Panic! at the museum
 {
+    private float sqrAcceptableReachedRadius = 0.001f; //ARBITARY VALUE ALERT!!! BEEP BEEP BEEP
     public PanicState(NPC npc) : base(npc) { }
     public override void enterState()
     {
-        newStateEntered();
-        //try to enter leave state
-        //choose random pos from open cells on the grid
-        Debug.Log("Leave");
-    }
-    public override bool enterState(Vector3 _targetPos)
-    {
-        return true;
+        Vector3[] path = npc.pathfinding.findPath(npc.currentGoalPosition);
+        npc.pathfinding.currentPath = path;
+        npc.pathfinding.currentTargetIndex = 1;
+        npc.pathfinding.currentTargetInPath = path[npc.pathfinding.currentTargetIndex]; //somehow out of index sometimes
+        npc.state.tickUpdate();
     }
     public override void frameUpdate()
     {
+        Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget(3.4f);
+        npc.gameObj.transform.position = currentPos;
+        inRangeOfCurrentTargetInPathCalculations(currentPos);
         requiredUpdateCheck();
     }
     public override void tickUpdate()
     {
-        Debug.Log("Leavin");
+        Vector3 targetPosition = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
+        targetPosition.y = npc.gameObj.transform.position.y;
+        Quaternion targetRotation = Quaternion.LookRotation(targetPosition - npc.gameObj.transform.position);
+        npc.gameObj.transform.rotation = targetRotation;
     }
     public override void turnUpdate()
     {
-        npc.updateMemory();
-        Debug.Log("really leavin");
+        //Panic turn
     }
     public override void exitState()
     {
-
+        stateExited();
+    }
+    private bool inRangeOfCurrentTargetInPathCalculations(Vector3 currentPos)
+    {
+        Vector2 dif = new Vector2(currentPos.x, currentPos.z) - new Vector2(npc.pathfinding.currentTargetInPath.x, npc.pathfinding.currentTargetInPath.z);
+        if (dif.sqrMagnitude <= sqrAcceptableReachedRadius)
+        {
+            if (npc.pathfinding.currentTargetIndex != npc.pathfinding.pathLength)
+            {
+                npc.pathfinding.currentTargetIndex++;
+                npc.pathfinding.currentTargetInPath = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex];
+            }
+            else
+            {
+                npc.gameObj.transform.position = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex]; // this is making it look weird
+                exitState();
+            }
+            return true;
+        }
+        return false;
     }
 }

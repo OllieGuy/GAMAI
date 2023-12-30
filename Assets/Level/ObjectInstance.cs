@@ -15,6 +15,7 @@ public class ObjectInstance : MonoBehaviour
     [SerializeField] GameObject interactionPos;
     [SerializeField] public List<Vector2Int> worldFootprint = new List<Vector2Int>(); //The first entry of this list is the root, and is used to find things
     [SerializeField] public List<TranslatedPosition> worldInteractionPositions = new List<TranslatedPosition>();
+    private int donationBoxMoneyContained;
 
     void Start()
     {
@@ -65,7 +66,6 @@ public class ObjectInstance : MonoBehaviour
             Museum.grid[tp.position.x, tp.position.y].occupation = Occupation.Soft;
         }
     }
-
     public void createObject(Vector2Int placePos)
     {
         int roomIndex = Room.locateRoom(Museum.grid[placePos.x,placePos.y]);
@@ -76,7 +76,6 @@ public class ObjectInstance : MonoBehaviour
         }
         updateMuseumGridWithSoft();
     }
-
     public void removeObject()
     {
         foreach (Vector2Int v in worldFootprint)
@@ -95,7 +94,6 @@ public class ObjectInstance : MonoBehaviour
         }
         Destroy(gameObject);
     }
-
     public void displayInteractionPoints()
     {
         List<GameObject> prevInteractionPoints = new List<GameObject>();
@@ -123,9 +121,10 @@ public class ObjectInstance : MonoBehaviour
             instWarn.tag = "Interaction Point";
         }
     }
-
     public Vector3? returnOpenInteractionPosition()
     {
+        List<TranslatedPosition> shuffledInteractionPositions = worldInteractionPositions;
+        shuffledInteractionPositions.Sort((x, y) => MathsFunctions.randomValue(-1, 2));
         foreach (TranslatedPosition tp in worldInteractionPositions)
         {
             if(!tp.beingUsed)
@@ -134,6 +133,45 @@ public class ObjectInstance : MonoBehaviour
             }
         }
         return null;
+    }
+    public float calculateHappinessChange(NPC npc)
+    {
+        float happinessChange = theObject.baseHappinessValue;
+        happinessChange += 0; //distance walked
+        if(theObject is Artefact)
+        {
+            Artefact recastObject = (Artefact)theObject;
+            if (npc.interest == recastObject.type)
+            {
+                happinessChange *= 2; //could replace later
+            }
+        }
+        happinessChange *= 1 - (npc.turnsInCurrentState * 0.1f);
+        happinessChange *= 0.1f; //Make the value closer to the desired
+        return Mathf.Clamp01(happinessChange);
+    }
+    public float calculateHappinessChange(NPC npc, DonationBox donationBox)
+    {
+        float happinessChange = -(npc.happiness - 0.5f);
+        donationBoxMoneyContained += (MathsFunctions.donateAmount(npc.happiness));
+        Debug.Log("money in da box: " + donationBoxMoneyContained);
+        Debug.Log("happiness change: " + happinessChange );
+        return Mathf.Clamp01(happinessChange);
+    }
+    public bool authCheck(NPC npc)
+    {
+        if (theObject is Artefact)
+        {
+            Artefact recastObject = (Artefact)theObject;
+            if (npc.interest == recastObject.type)
+            {
+                if(!recastObject.authenticity && UnityEngine.Random.value < recastObject.baseHappinessValue)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

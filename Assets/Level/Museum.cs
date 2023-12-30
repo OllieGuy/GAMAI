@@ -15,6 +15,7 @@ public class Museum : MonoBehaviour
 {
     public static Cell[,] grid = new Cell[11, 11]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     public static List<Room> roomsInMuseum = new List<Room>();
+    public static int[,] roomGrid = new int[grid.GetLength(0), grid.GetLength(1)];
     [SerializeField] Controls controls;
     void Start()
     {
@@ -23,9 +24,11 @@ public class Museum : MonoBehaviour
             for (int j = 0; j < grid.GetLength(1); j++)
             {
                 grid[i, j] = new Cell(i,j);
+                roomGrid[i, j] = -1;
             }
         }
-        newWall(new Vector2Int(2, 1), new Vector2Int(9, 1), false);
+        newWall(new Vector2Int(2, 1), new Vector2Int(4, 1), true);
+        newWall(new Vector2Int(4, 1), new Vector2Int(9, 1), false);
         newWall(new Vector2Int(9, 1), new Vector2Int(9, 9), false);
         newWall(new Vector2Int(9, 9), new Vector2Int(6, 9), false);
         newWall(new Vector2Int(6, 9), new Vector2Int(6, 7), false);
@@ -155,6 +158,7 @@ public class Museum : MonoBehaviour
             }
             Room room = new Room(cellsInRoom);
             roomsInMuseum.Add(room);
+            room.updateRoomGridWithNewRoom();
             return true;
         }
         return false;

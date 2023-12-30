@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
 using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.AI;
@@ -14,14 +16,19 @@ public class NPC
     public float turnLength;
     public int turnsSinceSpawn;
     public int turnsInCurrentState;
-    public Interest interest;
+    public ArtefactType interest;
     public Desire currentDesire;
+    public Desire previousDesire;
+    public Vector3 currentGoalPosition;
     public NPCPathfinding pathfinding;
     public NPCState state;
     private MoveState moveState;
     private VisitState visitState;
     private LeaveState leaveState;
     private PanicState panicState;
+    private bool endOfDesire;
+    public SelectedObjectInfo objectCurrentlyVisiting;
+    public int stageOfCurrentDesire;
     public GameTimer gameTimer;
     public GameTimer globalGameTimer;
     public Perception perception;
@@ -40,10 +47,10 @@ public class NPC
         turnLength = 5f;
         turnsSinceSpawn = 0;
         turnsInCurrentState = 0;
-        interest = (Interest)rand.Next(0, Enum.GetValues(typeof(Interest)).Length);
+        endOfDesire = false;
+        interest = (ArtefactType)rand.Next(0, Enum.GetValues(typeof(ArtefactType)).Length);
         pathfinding = new NPCPathfinding(_navMeshAgent);
         perception = new Perception();
-        currentDesire = Desire.Wander;
     }
     public void findAndUpdateObjectWithinMemory(ObjectInstance _seenObject)
     {
@@ -74,14 +81,22 @@ public class NPC
         List<ObjectMemory> objectsToRemove = new List<ObjectMemory>();
         for (int i = 0; i < memorisedObjectCount; i++)
         {
-            if (memorisedObjects[i].turnsInMemory > memorisedObjects[i].seenObject.theObject.turnsInMemory)
+            try
+            {
+                if (memorisedObjects[i].turnsInMemory > memorisedObjects[i].seenObject.theObject.turnsInMemory)
+                {
+                    objectsToRemove.Add(memorisedObjects[i]);
+                }
+                else
+                {
+                    memorisedObjects[i].turnsInMemory++;
+                }
+            }
+            catch (MissingReferenceException e)
             {
                 objectsToRemove.Add(memorisedObjects[i]);
             }
-            else
-            {
-                memorisedObjects[i].turnsInMemory++;
-            }
+            
         }
         foreach (ObjectMemory om in objectsToRemove)
         {
@@ -91,6 +106,13 @@ public class NPC
     }
     public void calculateDesire()
     {
+        previousDesire = currentDesire;
+        if (previousDesire != Desire.Wander)
+        {
+            Debug.Log("Last desire was NOT wander, adding wander buffer");
+            currentDesire = Desire.Wander;
+            return;
+        }
         Dictionary<Desire, float> desireDictionary = new Dictionary<Desire, float>();
         Dictionary<ObjectInstance, float> memorisedObjectDictionary = new Dictionary<ObjectInstance, float>();
         List<ObjectInstance> donationBoxes = new List<ObjectInstance>();
@@ -131,46 +153,73 @@ public class NPC
         desireDictionary.Add(Desire.Wander, wanderDesirability * multiplier);
         desireDictionary.Add(Desire.Donate, donateDesirability * multiplier);
         desireDictionary.Add(Desire.Leave, leaveDesirability);
-        Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
+        //Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
         Desire chosen = generateDesireFromDictionary();
+        //Debug.Log("reached the switch for decision making");
         switch(chosen)
         {
             case (Desire.Visit):
                 SelectedObjectInfo soi = generateObjectToVisitFromDictionary();
-                Debug.Log(soi.objectInstance.theObject.objectName + " " + soi.openInteractionLocation);
-                if(moveState.enterState(soi.openInteractionLocation))
+                //Debug.Log(soi.objectInstance.theObject.objectName + " " + soi.openInteractionLocation);
+                if (previousDesire != Desire.Visit)
                 {
-                    currentDesire = Desire.Visit;
+                    if(reachable(soi.openInteractionLocation, Desire.Visit, Desire.Wander))
+                    {
+                        objectCurrentlyVisiting = soi;
+                    }
                 }
                 else
                 {
-                    Debug.Log("Wanted to go to a thing but couldn't reach");
                     currentDesire = Desire.Wander;
                 }
                 break;
             case (Desire.Wander):
-                Debug.Log("Wander");
+                //Debug.Log("Wander");
                 currentDesire = Desire.Wander;
                 break;
             case (Desire.Donate):
-                Debug.Log("Donate");
-                currentDesire = Desire.Donate;
-                break;
-            case (Desire.Leave):
-                Debug.Log("Leave");
-                if (moveState.enterState(new Vector3(0, 0.5f, 0))) //replace with exit location
+                SelectedObjectInfo donoBox = getClosestDonationBox();
+                if(donoBox != null)
                 {
-                    currentDesire = Desire.Leave;
+                    if (reachable(donoBox.openInteractionLocation, Desire.Donate, Desire.Wander))
+                    {
+                        objectCurrentlyVisiting = donoBox;
+                    }
                 }
                 else
                 {
-                    currentDesire = Desire.Panic;
+                    currentDesire = Desire.Wander;
                 }
+                break;
+            case (Desire.Leave):
+                //Debug.Log("Leave");
+                reachable(new Vector3(0, 0.5f, 0), Desire.Leave, Desire.Panic); //replace with exit location
                 break;
             default:
                 currentDesire = Desire.Wander;
-                Debug.Log("uh oh");
+                //Debug.Log("uh oh");
                 break;
+        }
+        if (previousDesire != currentDesire)
+        {
+            turnsInCurrentState = 0;
+            stageOfCurrentDesire = 0;
+            desireToStateExecution();
+        }
+        bool reachable(Vector3 pos, Desire target, Desire targetFailed)
+        {
+            Vector2Int npcCurrentPos = new Vector2Int((int)Mathf.Round(gameObj.transform.position.x), (int)Mathf.Round(gameObj.transform.position.z));
+            Pathfinding p = new Pathfinding();
+            Vector2Int reachPos = new Vector2Int((int)Mathf.Round(pos.x), (int)Mathf.Round(pos.z));
+            if (p.AStarSolveReturnBool(npcCurrentPos, reachPos)) //separate if so slightly less expensive
+            {
+                currentDesire = target;
+                return true;
+            }
+            Debug.Log("Wanted to go to a thing but couldn't reach at " + pos);
+            Debug.Log("Current desire when failed: " + currentDesire);
+            currentDesire = targetFailed;
+            return false;
         }
         Desire generateDesireFromDictionary()
         {
@@ -191,6 +240,7 @@ public class NPC
             Dictionary<ObjectInstance, float> normalisedMemorisedObjectDictionary = new Dictionary<ObjectInstance, float>();
             Dictionary<ObjectInstance, Vector3> memorisedObjectInteractionPositionDictionary = new Dictionary<ObjectInstance, Vector3>();
             float totalObjectDesire = 0;
+            List<ObjectInstance> markedForDeath = new List<ObjectInstance>();
             foreach (var kvp in memorisedObjectDictionary) //need to add contingency if object is removed
             {
                 Vector3? openInteractionLocation = kvp.Key.returnOpenInteractionPosition();
@@ -202,8 +252,12 @@ public class NPC
                 }
                 else
                 {
-                    memorisedObjectDictionary.Remove(kvp.Key);
+                    markedForDeath.Add(kvp.Key);
                 }
+            }
+            foreach (ObjectInstance oi in markedForDeath)
+            {
+                memorisedObjectDictionary.Remove(oi);
             }
             float objectMultiplier = 1 / totalObjectDesire;
             foreach (var kvp in memorisedObjectDictionary)
@@ -223,10 +277,230 @@ public class NPC
             }
             return null; //not much of a contingency plan this time - just pray it'll work
         }
+        SelectedObjectInfo getClosestDonationBox()
+        {
+            if (donationBoxes.Count > 0)
+            {
+                List<ObjectInstance> orderedList = donationBoxes.OrderBy(obj => Vector3.Distance(obj.transform.position, gameObj.transform.position)).ToList();
+                foreach (ObjectInstance oi in orderedList) //need to add contingency if object is removed
+                {
+                    Vector3? openInteractionLocation = oi.returnOpenInteractionPosition();
+                    if (openInteractionLocation != null)
+                    {
+                        Vector3 realOpenInteractionLocation = openInteractionLocation.GetValueOrDefault(Vector3.zero);
+                        return new SelectedObjectInfo(orderedList[0], realOpenInteractionLocation);
+                    }
+                }
+            }
+            return null; //will return null if there are no open positions on any seen donation boxes 
+        }
     }
     public void doUpdate()
     {
+        //Debug.Log("Current desire: " + currentDesire+ "Previous desire: " + previousDesire);
+        //Debug.Log(state);
+        if (state.endState)
+        {
+            if (endOfDesire)
+            {
+                Debug.Log("this is the end");
+                calculateDesire();
+                stageOfCurrentDesire = 0;
+                endOfDesire = false;
+            }
+            else
+            {
+                if(currentDesire != Desire.Wander)
+                {
+                    //stageOfCurrentDesire++;
+                }
+            }
+            desireToStateExecution();
+            state.endState = false;
+        }
         state.frameUpdate();
+    }
+    public void desireToStateExecution()
+    {
+        switch(currentDesire)
+        {
+            case (Desire.Enter):
+                //Debug.Log("Switch says enter" + stageOfCurrentDesire);
+                enterStateExecution();
+                break;
+            case (Desire.Visit):
+                //Debug.Log("Switch says visit" + stageOfCurrentDesire);
+                visitStateExecution();
+                break;
+            case (Desire.Wander):
+                //Debug.Log("Switch says wander" + stageOfCurrentDesire);
+                wanderStateExecution();
+                break;
+            case (Desire.Donate):
+                //Debug.Log("Switch says donate" + stageOfCurrentDesire);
+                donateStateExecution();
+                break;
+            case (Desire.Panic):
+                //Debug.Log("Switch says panic" + stageOfCurrentDesire);
+                panicStateExecution();
+                break;
+            case (Desire.Leave):
+                //Debug.Log("Switch says leave" + stageOfCurrentDesire);
+                leaveStateExecution();
+                break;
+            default:
+                
+                break;
+        }
+    }
+    private void enterStateExecution()
+    {
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Enter");
+                currentGoalPosition = new Vector3(2, 1.5f, 2); //replace with entrance reference
+                state = moveState;
+                state.enterState();
+                stageOfCurrentDesire++;
+                break;
+            default:
+                currentDesire = Desire.Wander;
+                state.exitState();
+                endOfDesire = true;
+                break;
+        }
+    }
+    private void visitStateExecution()
+    {
+        Debug.Log("Visit called at " + stageOfCurrentDesire);
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Visit");
+                currentGoalPosition = objectCurrentlyVisiting.openInteractionLocation;
+                state = moveState;
+                state.enterState();
+                stageOfCurrentDesire++;
+                break;
+            case 1:
+                state = visitState;
+                state.enterState();
+                stageOfCurrentDesire++;
+                break;
+            default:
+                Debug.Log("should exit visit now");
+                state.exitState();
+                state.endState = true;
+                endOfDesire = true;
+                break;
+        }
+    }
+    private void wanderStateExecution()
+    {
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Wander");
+                currentGoalPosition = randomOpenPosition();
+                state = moveState;
+                state.enterState();
+                stageOfCurrentDesire++;
+                break;
+            case 1:
+                //Debug.Log("Continuing to Wander in state " + state);
+                currentGoalPosition = randomOpenPosition();
+                state.enterState();
+                break;
+            default:
+                endOfDesire = true;
+                break;
+        }
+    }
+    private void donateStateExecution()
+    {
+        Debug.Log("Donate called at " + stageOfCurrentDesire);
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Donate");
+                currentGoalPosition = objectCurrentlyVisiting.openInteractionLocation;
+                state = moveState;
+                state.enterState();
+                stageOfCurrentDesire++;
+                break;
+            case 1:
+                Debug.Log("Got 2 da box");
+                state = visitState;
+                visitState.enterState();
+                stageOfCurrentDesire++;
+                break;
+            default:
+                endOfDesire = true;
+                break;
+        }
+    }
+    private void panicStateExecution()
+    {
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Panic");
+                currentGoalPosition = randomOpenPosition();
+                state = moveState;
+                state.enterState();
+                break;
+            case 1:
+                Debug.Log("never ending panic lol");
+                break;
+            default:
+                endOfDesire = true;
+                break;
+        }
+    }
+    private void leaveStateExecution()
+    {
+        switch (stageOfCurrentDesire)
+        {
+            case 0:
+                Debug.Log("Entered Leave");
+                currentGoalPosition = new Vector3(0,0.5f,0); //Replace with exit position
+                state = moveState;
+                state.enterState();
+                break;
+            case 1:
+                Debug.Log("Boom");
+                NPCController.destroyNPC(gameObj); //Destroys the game object - be careful
+                break;
+            default:
+                endOfDesire = true;
+                break;
+        }
+    }
+    private Vector3 randomOpenPosition()
+    {
+        int randX;
+        int randY;
+        System.Random random = new System.Random();
+        Vector2Int npcCurrentPos = new Vector2Int((int)Mathf.Round(gameObj.transform.position.x),(int)Mathf.Round(gameObj.transform.position.z));
+        Pathfinding p = new Pathfinding();
+        int safety = 0;
+        while (safety < 40) //arbitary value. Very low chance something will not be able to be generated
+        {
+            randX = MathsFunctions.randomValue(0, Museum.grid.GetLength(0) - 1); //just gotta do this -1 unfortunately
+            randY = MathsFunctions.randomValue(0, Museum.grid.GetLength(1) - 1);
+            //if (Museum.grid[randX, randY].occupation == Occupation.None && moveState.reachablePosition(new Vector3(randX, 1.5f, randY)))
+            Vector2Int newRandPos = new Vector2Int(randX, randY);
+            if ((npcCurrentPos - newRandPos).sqrMagnitude>1 && Room.locateRoom(newRandPos) != -1)
+            {
+                if(p.AStarSolveReturnBool(npcCurrentPos, newRandPos)) //separate if so slightly less expensive
+                {
+                    return new Vector3(randX, 1.5f, randY);
+                }
+            }
+            safety++;
+        }
+        return new Vector3(0, 1.5f, 0);
     }
     private float calculateVisitObjectDesirability(ObjectInstance objInst)
     {
@@ -245,9 +519,12 @@ public class NPC
         {
             return 0.2f;
         }
+        else if (currentDesire == Desire.Donate)
+        {
+            return 0.5f;
+        }
         return 0;
     }
-    
     private float calculateDonationDesirability(List<ObjectInstance> donationBoxes)
     {
         if(donationBoxes.Count > 0)
@@ -259,7 +536,7 @@ public class NPC
     }
     private float calculateLeaveDesirability()
     {
-        float desirability = turnsSinceSpawn * 0.1f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
+        float desirability = turnsSinceSpawn * 0.2f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
         return Mathf.Clamp01(desirability);
     }
     private float distanceMultiplier(ObjectInstance objInst)
@@ -277,14 +554,6 @@ public class NPC
         }
         //Debug.Log(memorisedObjects.Count);
     }
-    bool checkForFake(Artefact artefact)
-    {
-        return false;
-    }
-    void updateHappiness(float change)
-    {
-
-    }
 }
 public class SelectedObjectInfo
 {
@@ -296,18 +565,6 @@ public class SelectedObjectInfo
         openInteractionLocation = _openInteractionLocation;
     }
     
-}
-public enum Interest
-{
-    Red,
-    Yellow,
-    Blue
-}
-public enum FrameTickTurn
-{
-    Frame,
-    Tick,
-    Turn
 }
 public enum Desire
 {

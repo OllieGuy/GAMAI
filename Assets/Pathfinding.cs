@@ -107,6 +107,74 @@ public class Pathfinding
             return finalList;
         }
     }
+    public bool AStarSolveReturnBool(Vector2Int start, Vector2Int end)
+    {
+        List<AStarNode> openList = new List<AStarNode>();
+        List<AStarNode> closedList = new List<AStarNode>();
+        bool[,] closedListCheck = new bool[museumSizeX, museumSizeY];
+        bool[,] openListCheck = new bool[museumSizeX, museumSizeY];
+        List<AStarNode> orderedOpenList = new List<AStarNode>();
+        openList.Add(new AStarNode(start, end));
+        while (openList.Count() != 0)
+        {
+            orderedOpenList = openList.OrderBy(o => o.f).ToList();
+            AStarNode current = orderedOpenList[0];
+            if (current.x == end.x && current.y == end.y)
+            {
+                closedList.Add(current);
+                break;
+            }
+            openList.Remove(current);
+            List<AStarNode> successorList = returnOpenCells(current, closedListCheck, end);
+            for (int i = 0; i < successorList.Count(); i++)
+            {
+                int successorCost = current.g + 1;
+                if (openListCheck[successorList[i].x, successorList[i].y])
+                {
+                    if (successorList[i].g <= successorCost)
+                    {
+                        break;
+                    }
+                }
+                else if (closedListCheck[successorList[i].x, successorList[i].y])
+                {
+                    if (successorList[i].g <= successorCost)
+                    {
+                        break;
+                    }
+                    closedList.Remove(successorList[i]);
+                    closedListCheck[successorList[i].x, successorList[i].y] = false;
+                }
+                else
+                {
+                    openList.Add(successorList[i]);
+                    openListCheck[successorList[i].x, successorList[i].y] = true;
+                }
+                successorList[i].g = successorCost;
+                successorList[i].parent = current;
+            }
+            closedList.Add(current);
+            closedListCheck[current.x, current.y] = true;
+        }
+        List<AStarNode> finalList = new List<AStarNode>();
+        finalList = FinalList(closedList[closedList.Count() - 1], finalList);
+        List<Vector2Int> vect2FinalList = AStarNode.convertToVector2Int(finalList);
+        if (vect2FinalList[0] == end)
+        {
+            return true;
+        }
+        return false;
+
+        List<AStarNode> FinalList(AStarNode current, List<AStarNode> finalList)
+        {
+            finalList.Add(current);
+            if (current.parent != null)
+            {
+                FinalList(current.parent, finalList);
+            }
+            return finalList;
+        }
+    }
 }
 
 public class AStarNode : Pathfinding
