@@ -32,8 +32,9 @@ public class NPC
     public GameTimer gameTimer;
     public GameTimer globalGameTimer;
     public Perception perception;
-    public List<Artefact> visitedArtefacts = new List<Artefact>();
+    public List<ObjectInstance> visitedObjects = new List<ObjectInstance>();
     public List<ObjectMemory> memorisedObjects = new List<ObjectMemory>();
+    public List<NPCMemory> memorisedNPCs = new List<NPCMemory>();
     public List<Room> relevantRooms = new List<Room>();
     public NPC(NavMeshAgent _navMeshAgent)
     {
@@ -51,29 +52,6 @@ public class NPC
         interest = (ArtefactType)rand.Next(0, Enum.GetValues(typeof(ArtefactType)).Length);
         pathfinding = new NPCPathfinding(_navMeshAgent);
         perception = new Perception();
-    }
-    public void findAndUpdateObjectWithinMemory(ObjectInstance _seenObject)
-    {
-        int curIndex = memoryIndexCheck();
-        if (curIndex != -1)
-        {
-            memorisedObjects[curIndex].turnsInMemory = 0;
-        }
-        else
-        {
-            memorisedObjects.Add(new ObjectMemory(_seenObject));
-        }
-        int memoryIndexCheck()
-        {
-            int i = 0;
-            foreach (ObjectMemory om in memorisedObjects)
-            {
-                if (om.seenObject == _seenObject)
-                { return i; }
-                i++;
-            }
-            return -1;
-        }
     }
     public void updateMemory()
     {
@@ -107,9 +85,22 @@ public class NPC
     public void calculateDesire()
     {
         previousDesire = currentDesire;
+        if (previousDesire == Desire.Leave || previousDesire == Desire.Panic)
+        {
+            currentDesire = Desire.Leave;
+            return;
+        }
+        foreach (NPCMemory nm in memorisedNPCs)
+        {
+            if (nm.seenNPC.currentDesire == Desire.Panic)
+            {
+                currentDesire = Desire.Panic;
+                return;
+            }
+        }
         if (previousDesire != Desire.Wander)
         {
-            Debug.Log("Last desire was NOT wander, adding wander buffer");
+            Debug.Log("Last desire was NOT wander, adding wander buffer" + previousDesire);
             currentDesire = Desire.Wander;
             return;
         }
@@ -124,9 +115,16 @@ public class NPC
             {
                 if (o.seenObject.tag != "Donation Box")
                 {
-                    float desirability = calculateVisitObjectDesirability(o.seenObject);
-                    memorisedObjectDictionary.Add(o.seenObject, desirability);
-                    totalArtefactDesirability += desirability;
+                    if(!visitedObjects.Contains(o.seenObject))
+                    {
+                        float desirability = calculateVisitObjectDesirability(o.seenObject);
+                        memorisedObjectDictionary.Add(o.seenObject, desirability);
+                        totalArtefactDesirability += desirability;
+                    }
+                    else
+                    {
+                        badMemories.Add(o);
+                    }
                 }
                 else
                 {
@@ -153,9 +151,8 @@ public class NPC
         desireDictionary.Add(Desire.Wander, wanderDesirability * multiplier);
         desireDictionary.Add(Desire.Donate, donateDesirability * multiplier);
         desireDictionary.Add(Desire.Leave, leaveDesirability);
-        //Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
+        Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
         Desire chosen = generateDesireFromDictionary();
-        //Debug.Log("reached the switch for decision making");
         switch(chosen)
         {
             case (Desire.Visit):
@@ -204,8 +201,8 @@ public class NPC
         {
             turnsInCurrentState = 0;
             stageOfCurrentDesire = 0;
-            desireToStateExecution();
         }
+        turnsSinceSpawn++;
         bool reachable(Vector3 pos, Desire target, Desire targetFailed)
         {
             Vector2Int npcCurrentPos = new Vector2Int((int)Mathf.Round(gameObj.transform.position.x), (int)Mathf.Round(gameObj.transform.position.z));
@@ -383,15 +380,11 @@ public class NPC
                 state.enterState();
                 stageOfCurrentDesire++;
                 break;
-            case 1:
+            default:
+                visitedObjects.Add(objectCurrentlyVisiting.objectInstance);
                 state = visitState;
                 state.enterState();
                 stageOfCurrentDesire++;
-                break;
-            default:
-                Debug.Log("should exit visit now");
-                state.exitState();
-                state.endState = true;
                 endOfDesire = true;
                 break;
         }
@@ -429,13 +422,11 @@ public class NPC
                 state.enterState();
                 stageOfCurrentDesire++;
                 break;
-            case 1:
+            default:
                 Debug.Log("Got 2 da box");
                 state = visitState;
                 visitState.enterState();
                 stageOfCurrentDesire++;
-                break;
-            default:
                 endOfDesire = true;
                 break;
         }
@@ -447,14 +438,21 @@ public class NPC
             case 0:
                 Debug.Log("Entered Panic");
                 currentGoalPosition = randomOpenPosition();
-                state = moveState;
+                state = panicState;
                 state.enterState();
-                break;
-            case 1:
-                Debug.Log("never ending panic lol");
+                stageOfCurrentDesire++;
                 break;
             default:
-                endOfDesire = true;
+                if (exitPossible())
+                {
+                    endOfDesire=true;
+                }
+                else
+                {
+                    currentGoalPosition = randomOpenPosition();
+                    state = panicState;
+                    state.enterState();
+                }
                 break;
         }
     }
@@ -464,9 +462,16 @@ public class NPC
         {
             case 0:
                 Debug.Log("Entered Leave");
-                currentGoalPosition = new Vector3(0,0.5f,0); //Replace with exit position
-                state = moveState;
-                state.enterState();
+                if(exitPossible())
+                {
+                    state = moveState;
+                    state.enterState();
+                    stageOfCurrentDesire++;
+                }
+                else
+                {
+                    currentDesire = Desire.Panic;
+                }
                 break;
             case 1:
                 Debug.Log("Boom");
@@ -501,6 +506,18 @@ public class NPC
             safety++;
         }
         return new Vector3(0, 1.5f, 0);
+    }
+    private bool exitPossible()
+    {
+        Pathfinding p = new Pathfinding();
+        Vector2Int npcCurrentPos = new Vector2Int((int)Mathf.Round(gameObj.transform.position.x), (int)Mathf.Round(gameObj.transform.position.z));
+        Vector2Int exitPos = new Vector2Int(0, 0); //change if the exit position changes
+        if (p.AStarSolveReturnBool(npcCurrentPos, exitPos))
+        {
+            currentGoalPosition = new Vector3(exitPos.x, 1.5f, exitPos.y);
+            return true;
+        }
+        return false;
     }
     private float calculateVisitObjectDesirability(ObjectInstance objInst)
     {
@@ -547,12 +564,64 @@ public class NPC
     }
     public void percieve()
     {
-        List<ObjectInstance> percievedObjects = Perception.convertToObjectInstanceList(perception.fireRaycasts(gameObj.transform));
+        List<GameObject>[] allSeenThings = perception.fireRaycasts(gameObj.transform);
+        List<ObjectInstance> percievedObjects = Perception.convertToObjectInstanceList(allSeenThings[0]);
+        List<NPC> percievedNPCs = Perception.convertToNPCList(allSeenThings[1]);
         foreach (ObjectInstance oi in percievedObjects)
         {
             findAndUpdateObjectWithinMemory(oi);
         }
+        foreach (NPC theNPC in percievedNPCs)
+        {
+            findAndUpdateNPCWithinMemory(theNPC);
+        }
         //Debug.Log(memorisedObjects.Count);
+    }
+    public void findAndUpdateObjectWithinMemory(ObjectInstance _seenObject)
+    {
+        int curIndex = memoryIndexCheck();
+        if (curIndex != -1)
+        {
+            memorisedObjects[curIndex].turnsInMemory = 0;
+        }
+        else
+        {
+            memorisedObjects.Add(new ObjectMemory(_seenObject));
+        }
+        int memoryIndexCheck()
+        {
+            int i = 0;
+            foreach (ObjectMemory om in memorisedObjects)
+            {
+                if (om.seenObject == _seenObject)
+                { return i; }
+                i++;
+            }
+            return -1;
+        }
+    }
+    public void findAndUpdateNPCWithinMemory(NPC _seenNPC)
+    {
+        int curIndex = memoryIndexCheck();
+        if (curIndex != -1)
+        {
+            memorisedNPCs[curIndex].turnsInMemory = 0;
+        }
+        else
+        {
+            memorisedNPCs.Add(new NPCMemory(_seenNPC));
+        }
+        int memoryIndexCheck()
+        {
+            int i = 0;
+            foreach (NPCMemory nm in memorisedNPCs)
+            {
+                if (nm.seenNPC == _seenNPC)
+                { return i; }
+                i++;
+            }
+            return -1;
+        }
     }
 }
 public class SelectedObjectInfo
@@ -584,5 +653,15 @@ public class ObjectMemory
     {
         turnsInMemory = 0;
         seenObject = _seenObject;
+    }
+}
+public class NPCMemory
+{
+    public int turnsInMemory;
+    public NPC seenNPC;
+    public NPCMemory(NPC _seenNPC)
+    {
+        turnsInMemory = 0;
+        seenNPC = _seenNPC;
     }
 }

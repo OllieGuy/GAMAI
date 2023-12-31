@@ -156,7 +156,7 @@ public class ObjectInstance : MonoBehaviour
         donationBoxMoneyContained += (MathsFunctions.donateAmount(npc.happiness));
         Debug.Log("money in da box: " + donationBoxMoneyContained);
         Debug.Log("happiness change: " + happinessChange );
-        return Mathf.Clamp01(happinessChange);
+        return Mathf.Clamp(happinessChange,-1,1);
     }
     public bool authCheck(NPC npc)
     {

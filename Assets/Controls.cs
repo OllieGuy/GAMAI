@@ -12,11 +12,12 @@ public class Controls : MonoBehaviour
     [SerializeField] Transform plane;
     [SerializeField] Camera cam;
     [SerializeField] GameObject baseObject;
+    [SerializeField] GameObject NPCprefab;
     [SerializeField] NavMeshAgent agent;
     [SerializeField] NavMeshSurface surface;
     [SerializeField] Object[] objects;
     [SerializeField] Material doorwayMaterial;
-    [SerializeField] GameObject testNPC; //THIS IS TEMPORARY FOR TESTING A SINGLE NPC
+    //[SerializeField] GameObject testNPC; //THIS IS TEMPORARY FOR TESTING A SINGLE NPC
     Dictionary<string, Object> objectDictionary = new Dictionary<string, Object>();
     public bool meshUpdate = false;
     private static Vector2Int startNavPoint = new Vector2Int(-1,-1);
@@ -60,7 +61,8 @@ public class Controls : MonoBehaviour
             }
             if (Input.GetMouseButtonDown(1))
             {
-                testNPC.SetActive(true);
+                //testNPC.SetActive(true);
+                Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
                 //Ray ray = cam.ScreenPointToRay(Input.mousePosition);
                 //RaycastHit hit;
                 //if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)

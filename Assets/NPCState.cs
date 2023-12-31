@@ -30,21 +30,20 @@ public abstract class NPCState
                 npc.state.turnUpdate();
                 npc.gameTimer.tickCount = 0;
                 npc.turnsInCurrentState++;
-                npc.turnsSinceSpawn++;
             }
         }
     }
     protected void stateExited()
     {
         //Debug.Log("exiting state");
-        endState = true;
-        npc.gameTimer.resetCounter();
+        //endState = true;
+        //npc.gameTimer.resetCounter();
         //Debug.Log("prev: " + npc.previousDesire + "new: " + npc.currentDesire);
-        //if (npc.previousDesire != npc.currentDesire)
-        //{
-        //    npc.stageOfCurrentDesire = 0;
-        //    npc.gameTimer.resetCounter();
-        //}
+        if (npc.currentDesire != Desire.Wander && npc.currentDesire != Desire.Panic)
+        {
+            npc.gameTimer.resetCounter();
+        }
+        endState = true;
     }
 }
 
@@ -54,7 +53,7 @@ public class MoveState : NPCState
     public MoveState(NPC npc) : base(npc){}
     public override void enterState()
     {
-        Debug.Log("Enter da move state to go to" + npc.currentGoalPosition);
+        //Debug.Log("Enter da move state to go to" + npc.currentGoalPosition);
         Vector3[] path = npc.pathfinding.findPath(npc.currentGoalPosition);
         npc.pathfinding.currentPath = path;
         npc.pathfinding.currentTargetIndex = 1;
@@ -154,7 +153,7 @@ public class VisitState : NPCState
         if(npc.currentDesire == Desire.Donate)
         {
             Debug.Log("Only here to donate");
-            npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc,(DonationBox)npc.objectCurrentlyVisiting.objectInstance.theObject);
+            npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc, (DonationBox)npc.objectCurrentlyVisiting.objectInstance.theObject);
             exitState();
         }
         else if (UnityEngine.Random.value > (1 - (npc.turnsInCurrentState * 0.1f)))
@@ -210,7 +209,7 @@ public class PanicState : NPCState //Panic! at the museum
         Vector3[] path = npc.pathfinding.findPath(npc.currentGoalPosition);
         npc.pathfinding.currentPath = path;
         npc.pathfinding.currentTargetIndex = 1;
-        npc.pathfinding.currentTargetInPath = path[npc.pathfinding.currentTargetIndex]; //somehow out of index sometimes
+        npc.pathfinding.currentTargetInPath = path[npc.pathfinding.currentTargetIndex];
         npc.state.tickUpdate();
     }
     public override void frameUpdate()
@@ -229,7 +228,8 @@ public class PanicState : NPCState //Panic! at the museum
     }
     public override void turnUpdate()
     {
-        //Panic turn
+        Debug.Log("panicin aggghhh" + npc.happiness);
+        npc.happiness -= 0.1f * npc.happiness;
     }
     public override void exitState()
     {
@@ -247,7 +247,6 @@ public class PanicState : NPCState //Panic! at the museum
             }
             else
             {
-                npc.gameObj.transform.position = npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex]; // this is making it look weird
                 exitState();
             }
             return true;
