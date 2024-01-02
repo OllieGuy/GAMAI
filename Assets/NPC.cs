@@ -78,7 +78,7 @@ public class NPC
         }
         foreach (ObjectMemory om in objectsToRemove)
         {
-            Debug.Log("removed " + om.seenObject.name);
+            //Debug.Log("removed " + om.seenObject.name);
             memorisedObjects.Remove(om);
         }
     }
@@ -300,7 +300,7 @@ public class NPC
         {
             if (endOfDesire)
             {
-                Debug.Log("this is the end");
+                //Debug.Log("this is the end");
                 calculateDesire();
                 stageOfCurrentDesire = 0;
                 endOfDesire = false;
@@ -355,7 +355,7 @@ public class NPC
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Enter");
+                //Debug.Log("Entered Enter");
                 currentGoalPosition = new Vector3(2, 1.5f, 2); //replace with entrance reference
                 state = moveState;
                 state.enterState();
@@ -370,11 +370,10 @@ public class NPC
     }
     private void visitStateExecution()
     {
-        Debug.Log("Visit called at " + stageOfCurrentDesire);
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Visit");
+                //Debug.Log("Entered Visit");
                 currentGoalPosition = objectCurrentlyVisiting.openInteractionLocation;
                 state = moveState;
                 state.enterState();
@@ -394,7 +393,7 @@ public class NPC
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Wander");
+                //Debug.Log("Entered Wander");
                 currentGoalPosition = randomOpenPosition();
                 state = moveState;
                 state.enterState();
@@ -412,18 +411,18 @@ public class NPC
     }
     private void donateStateExecution()
     {
-        Debug.Log("Donate called at " + stageOfCurrentDesire);
+        //Debug.Log("Donate called at " + stageOfCurrentDesire);
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Donate");
+                //Debug.Log("Entered Donate");
                 currentGoalPosition = objectCurrentlyVisiting.openInteractionLocation;
                 state = moveState;
                 state.enterState();
                 stageOfCurrentDesire++;
                 break;
             default:
-                Debug.Log("Got 2 da box");
+                //Debug.Log("Got 2 da box");
                 state = visitState;
                 visitState.enterState();
                 stageOfCurrentDesire++;
@@ -436,7 +435,7 @@ public class NPC
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Panic");
+                //Debug.Log("Entered Panic");
                 currentGoalPosition = randomOpenPosition();
                 state = panicState;
                 state.enterState();
@@ -461,7 +460,7 @@ public class NPC
         switch (stageOfCurrentDesire)
         {
             case 0:
-                Debug.Log("Entered Leave");
+                //Debug.Log("Entered Leave");
                 if(exitPossible())
                 {
                     state = moveState;
@@ -553,7 +552,7 @@ public class NPC
     }
     private float calculateLeaveDesirability()
     {
-        float desirability = turnsSinceSpawn * 0.2f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
+        float desirability = turnsSinceSpawn * 0.02f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
         return Mathf.Clamp01(desirability);
     }
     private float distanceMultiplier(ObjectInstance objInst)

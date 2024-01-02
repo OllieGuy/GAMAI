@@ -50,6 +50,8 @@ public abstract class NPCState
 public class MoveState : NPCState
 {
     private float sqrAcceptableReachedRadius = 0.001f; //ARBITARY VALUE ALERT!!! BEEP BEEP BEEP
+    private Vector3 posLastTurn = new Vector3(0,1.5f,0);
+    private float speed = 1.7f;
     public MoveState(NPC npc) : base(npc){}
     public override void enterState()
     {
@@ -62,7 +64,7 @@ public class MoveState : NPCState
     }
     public override void frameUpdate()
     {
-        Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget(1.7f);
+        Vector3 currentPos = npc.pathfinding.moveTowardsCurrentTarget(speed);
         npc.gameObj.transform.position = currentPos;
         inRangeOfCurrentTargetInPathCalculations(currentPos);
         requiredUpdateCheck();
@@ -83,6 +85,14 @@ public class MoveState : NPCState
     public override void turnUpdate()
     {
         npc.updateMemory();
+        if ((posLastTurn - npc.gameObj.transform.position).magnitude < 0.1f || speed < 0)
+        {
+            if (UnityEngine.Random.value > 0.5f)
+            {
+                speed = -speed;
+            }
+        }
+        posLastTurn = npc.gameObj.transform.position;
         if (npc.currentDesire == Desire.Wander)
         {
             npc.calculateDesire();
