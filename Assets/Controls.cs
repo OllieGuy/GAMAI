@@ -17,6 +17,9 @@ public class Controls : MonoBehaviour
     [SerializeField] NavMeshSurface surface;
     [SerializeField] Object[] objects;
     [SerializeField] Material doorwayMaterial;
+    [SerializeField] Camera placementCam;
+    [SerializeField] Camera viewCam;
+
     //[SerializeField] GameObject testNPC; //THIS IS TEMPORARY FOR TESTING A SINGLE NPC
     Dictionary<string, Object> objectDictionary = new Dictionary<string, Object>();
     public bool meshUpdate = false;
@@ -31,6 +34,8 @@ public class Controls : MonoBehaviour
             o.baseHappinessValue = MathsFunctions.baseHappinessValue(o.value, o.getRarityMultiplier()); //exec at start means values can be tweaked without having to manually recalc
             //Debug.Log(o.objectName + ": " + o.baseHappinessValue);
         }
+        placementCam.enabled = true;
+        viewCam.enabled = false;
     }
     void Update()
     {
@@ -62,26 +67,8 @@ public class Controls : MonoBehaviour
             if (Input.GetMouseButtonDown(1))
             {
                 //testNPC.SetActive(true);
+                //StartCoroutine(instantiateNPCQuickly());
                 Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
-                //Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                //RaycastHit hit;
-                //if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform == plane)
-                //{
-                //    //agent.SetDestination(hit.point);
-                //    NavMeshPath path = new();
-                //    agent.CalculatePath(hit.point, path);
-                //    Vector3[] pathWaypoints = new Vector3[path.corners.Length];
-                //    for (int i = 0; i < path.corners.Length; i++)
-                //    {
-                //        pathWaypoints[i] = path.corners[i];
-                //    }
-                //    foreach (Vector3 point in pathWaypoints)
-                //    {
-                //        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                //        sphere.transform.position = point;
-                //        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-                //    }
-                //}
             }
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -113,12 +100,17 @@ public class Controls : MonoBehaviour
                     }
                 }
             }
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                placementCam.enabled = !placementCam.enabled;
+                viewCam.enabled = !viewCam.enabled;
+            }
         }
     }
 
     void placeBlockBasedOnKeyDown(Vector2Int placePos)
     {
-        GameObject theObject = null;
+        GameObject theObject;
         string objectToPlace = null;
         string tagToUse = "Untagged";
         if (Input.anyKeyDown)
@@ -163,6 +155,17 @@ public class Controls : MonoBehaviour
         {
             surface.BuildNavMesh();
             meshUpdate = false;
+        }
+    }
+
+    IEnumerator instantiateNPCQuickly()
+    {
+        int totalCount = 0;
+        while (totalCount < 1000)
+        {
+            Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
+            totalCount++;
+            yield return new WaitForSeconds(0.02f);
         }
     }
 }

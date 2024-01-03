@@ -13,7 +13,7 @@ using UnityEngine;
 
 public class Museum : MonoBehaviour
 {
-    public static Cell[,] grid = new Cell[11, 11]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
+    public static Cell[,] grid = new Cell[15, 15]; //THE FIRST IS X THE SECOND IS Y KEEP THIS THE SAME
     public static List<Room> roomsInMuseum = new List<Room>();
     public static int[,] roomGrid = new int[grid.GetLength(0), grid.GetLength(1)];
     [SerializeField] Controls controls;
@@ -27,18 +27,48 @@ public class Museum : MonoBehaviour
                 roomGrid[i, j] = -1;
             }
         }
+        //newWall(new Vector2Int(2, 1), new Vector2Int(4, 1), true);
+        //newWall(new Vector2Int(4, 1), new Vector2Int(9, 1), false);
+        //newWall(new Vector2Int(9, 1), new Vector2Int(9, 9), false);
+        //newWall(new Vector2Int(9, 9), new Vector2Int(6, 9), false);
+        //newWall(new Vector2Int(6, 9), new Vector2Int(6, 7), false);
+        //newWall(new Vector2Int(6, 7), new Vector2Int(2, 7), false);
+        //newWall(new Vector2Int(2, 7), new Vector2Int(2, 1), false);
+
+        //newWall(new Vector2Int(6, 1), new Vector2Int(6, 4), false);
+        //newWall(new Vector2Int(6, 4), new Vector2Int(8, 4), false);
+        //newWall(new Vector2Int(8, 4), new Vector2Int(9, 4), true);
+
         newWall(new Vector2Int(2, 1), new Vector2Int(4, 1), true);
         newWall(new Vector2Int(4, 1), new Vector2Int(9, 1), false);
-        newWall(new Vector2Int(9, 1), new Vector2Int(9, 9), false);
+        newWall(new Vector2Int(9, 1), new Vector2Int(9, 6), false);
+        newWall(new Vector2Int(9, 6), new Vector2Int(9, 9), true);
         newWall(new Vector2Int(9, 9), new Vector2Int(6, 9), false);
         newWall(new Vector2Int(6, 9), new Vector2Int(6, 7), false);
-        newWall(new Vector2Int(6, 7), new Vector2Int(2, 7), false);
+        newWall(new Vector2Int(6, 7), new Vector2Int(4, 7), false);
+        newWall(new Vector2Int(4, 7), new Vector2Int(2, 7), true);
         newWall(new Vector2Int(2, 7), new Vector2Int(2, 1), false);
 
         newWall(new Vector2Int(6, 1), new Vector2Int(6, 4), false);
-        newWall(new Vector2Int(6, 4), new Vector2Int(8, 4), false);
-        newWall(new Vector2Int(8, 4), new Vector2Int(9, 4), true);
-        //newWall(new Vector2Int(, ), new Vector2Int(, ));
+        newWall(new Vector2Int(6, 4), new Vector2Int(7, 4), false);
+        newWall(new Vector2Int(7, 4), new Vector2Int(9, 4), true);
+
+        newWall(new Vector2Int(9, 1), new Vector2Int(13, 1), false);
+        newWall(new Vector2Int(13, 1), new Vector2Int(13, 14), false);
+        newWall(new Vector2Int(13, 5), new Vector2Int(12, 5), false);
+        newWall(new Vector2Int(12, 5), new Vector2Int(10, 5), true);
+        newWall(new Vector2Int(10, 5), new Vector2Int(9, 5), true);
+
+        newWall(new Vector2Int(13, 14), new Vector2Int(2, 14), false);
+        newWall(new Vector2Int(8, 14), new Vector2Int(8, 13), true);
+        newWall(new Vector2Int(8, 13), new Vector2Int(8, 11), false);
+        newWall(new Vector2Int(8, 11), new Vector2Int(8, 9), true);
+
+        newWall(new Vector2Int(2, 14), new Vector2Int(2, 7), false);
+        newWall(new Vector2Int(2, 11), new Vector2Int(4, 11), false);
+        newWall(new Vector2Int(4, 11), new Vector2Int(6, 11), true);
+        newWall(new Vector2Int(6, 11), new Vector2Int(8, 11), false);
+        //newWall(new Vector2Int(, ), new Vector2Int(, ),false);
         //Room.displayRooms();
         controls.meshUpdate = true;
     }
@@ -121,7 +151,7 @@ public class Museum : MonoBehaviour
         bool[,] visitedThisDetect = new bool[grid.GetLength(0), grid.GetLength(1)];
         int depthCount = 0;
         cellQueue.Enqueue(grid[checkPos.x, checkPos.y]);
-        while (cellQueue.Count > 0 && depthCount <= 48) //MAX ROOM SIZE
+        while (cellQueue.Count > 0 && depthCount <= 70) //MAX ROOM SIZE
         {
             Cell curCell = cellQueue.Dequeue();
             try
