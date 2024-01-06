@@ -55,7 +55,6 @@ public class MoveState : NPCState
     public MoveState(NPC npc) : base(npc){}
     public override void enterState()
     {
-        //Debug.Log("Enter da move state to go to" + npc.currentGoalPosition);
         Vector3[] path = npc.pathfinding.findPath(npc.currentGoalPosition);
         npc.pathfinding.currentPath = path;
         npc.pathfinding.currentTargetIndex = 1;
@@ -75,8 +74,6 @@ public class MoveState : NPCState
         targetPosition.y = npc.gameObj.transform.position.y;
         Quaternion targetRotation = Quaternion.LookRotation(targetPosition - npc.gameObj.transform.position);
         npc.gameObj.transform.rotation = targetRotation;
-        //inRangeOfCurrentTargetInPathCalculations(currentPos); //requires a larger tolerance
-        //ADD FUNCTION THAT VALIDATES PATH IS OKAY
         if (npc.currentDesire != Desire.Enter && npc.currentDesire != Desire.Leave && npc.currentDesire != Desire.Panic)
         {
             npc.percieve();
@@ -116,7 +113,7 @@ public class MoveState : NPCState
             else
             {
                 Vector3 correctPos = new Vector3(npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex].x, 1.5f, npc.pathfinding.currentPath[npc.pathfinding.currentTargetIndex].z);
-                npc.gameObj.transform.position = correctPos; // this is making it look weird
+                npc.gameObj.transform.position = correctPos;
                 //Debug.Log("reached target");
                 exitState();
             }
@@ -140,7 +137,8 @@ public class VisitState : NPCState
     public VisitState(NPC npc) : base(npc) { }
     public override void enterState()
     {
-        Debug.Log("Entered Visit STATE");
+        //Debug.Log("Entered Visit STATE");
+        npc.gameObj.transform.LookAt(npc.objectCurrentlyVisiting.objectInstance.transform.position);
     }
     public override void frameUpdate()
     {
@@ -162,13 +160,13 @@ public class VisitState : NPCState
         npc.updateMemory();
         if(npc.currentDesire == Desire.Donate)
         {
-            Debug.Log("Only here to donate");
+            //Debug.Log("Only here to donate");
             npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc, (DonationBox)npc.objectCurrentlyVisiting.objectInstance.theObject);
             exitState();
         }
         else if (UnityEngine.Random.value > (1 - (npc.turnsInCurrentState * 0.1f)))
         {
-            Debug.Log("Gross bored");
+            //Debug.Log("Gross bored");
             npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc);
             exitState();
         }
@@ -176,36 +174,11 @@ public class VisitState : NPCState
         {
             npc.happiness += npc.objectCurrentlyVisiting.objectInstance.calculateHappinessChange(npc);
         }
-        Debug.Log("really visitin. Current Happiness: " + npc.happiness);
+        //Debug.Log("really visitin. Current Happiness: " + npc.happiness);
     }
     public override void exitState()
     {
-        stateExited();
-    }
-}
-
-public class LeaveState : NPCState
-{
-    public LeaveState(NPC npc) : base(npc) { }
-    public override void enterState()
-    {
-        Debug.Log("Leave");
-    }
-    public override void frameUpdate()
-    {
-        requiredUpdateCheck();
-    }
-    public override void tickUpdate()
-    {
-        Debug.Log("Leavin");
-    }
-    public override void turnUpdate()
-    {
-        npc.updateMemory();
-        Debug.Log("really leavin");
-    }
-    public override void exitState()
-    {
+        npc.objectCurrentlyVisiting.objectInstance.updateOpenInteractionPoint(npc.objectCurrentlyVisiting.convOpenInteractionLocationToInt(), false);
         stateExited();
     }
 }

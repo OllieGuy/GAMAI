@@ -24,7 +24,6 @@ public class NPC
     public NPCState state;
     private MoveState moveState;
     private VisitState visitState;
-    private LeaveState leaveState;
     private PanicState panicState;
     private bool endOfDesire;
     public SelectedObjectInfo objectCurrentlyVisiting;
@@ -40,7 +39,6 @@ public class NPC
     {
         moveState = new MoveState(this);
         visitState = new VisitState(this);
-        leaveState = new LeaveState(this);
         panicState = new PanicState(this);
         gameObj = _navMeshAgent.gameObject;
         System.Random rand = new System.Random();
@@ -100,7 +98,7 @@ public class NPC
         }
         if (previousDesire != Desire.Wander)
         {
-            Debug.Log("Last desire was NOT wander, adding wander buffer" + previousDesire);
+            //Debug.Log("Last desire was NOT wander, adding wander buffer" + previousDesire);
             currentDesire = Desire.Wander;
             return;
         }
@@ -138,7 +136,7 @@ public class NPC
         }
         foreach (ObjectMemory o in badMemories)
         {
-            Debug.Log("removed thing");
+            //Debug.Log("removed thing");
             memorisedObjects.Remove(o);
         }
         float visitDesirability = totalArtefactDesirability; //the more artefacts an NPC has memorised, the less likely they are to wander
@@ -151,19 +149,25 @@ public class NPC
         desireDictionary.Add(Desire.Wander, wanderDesirability * multiplier);
         desireDictionary.Add(Desire.Donate, donateDesirability * multiplier);
         desireDictionary.Add(Desire.Leave, leaveDesirability);
-        Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
+        //Debug.Log("Visit: " + (visitDesirability * multiplier) + " Wander: " + (wanderDesirability * multiplier) + " Donate: " + (donateDesirability * multiplier) + " Leave: " + leaveDesirability); 
         Desire chosen = generateDesireFromDictionary();
         switch(chosen)
         {
             case (Desire.Visit):
                 SelectedObjectInfo soi = generateObjectToVisitFromDictionary();
+                
                 //Debug.Log(soi.objectInstance.theObject.objectName + " " + soi.openInteractionLocation);
                 if (previousDesire != Desire.Visit)
                 {
-                    if(reachable(soi.openInteractionLocation, Desire.Visit, Desire.Wander))
+                    try
                     {
-                        objectCurrentlyVisiting = soi;
+                        if (reachable(soi.openInteractionLocation, Desire.Visit, Desire.Wander))
+                        {
+                            objectCurrentlyVisiting = soi;
+                            objectCurrentlyVisiting.objectInstance.updateOpenInteractionPoint(objectCurrentlyVisiting.convOpenInteractionLocationToInt(), true);
+                        }
                     }
+                    catch (NullReferenceException e) { }
                 }
                 else
                 {
@@ -374,6 +378,7 @@ public class NPC
         {
             case 0:
                 //Debug.Log("Entered Visit");
+                
                 currentGoalPosition = objectCurrentlyVisiting.openInteractionLocation;
                 state = moveState;
                 state.enterState();
@@ -552,7 +557,7 @@ public class NPC
     }
     private float calculateLeaveDesirability()
     {
-        float desirability = turnsSinceSpawn * 0.02f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
+        float desirability = turnsSinceSpawn * 0.1f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
         return Mathf.Clamp01(desirability);
     }
     private float distanceMultiplier(ObjectInstance objInst)
@@ -632,7 +637,15 @@ public class SelectedObjectInfo
         objectInstance = _objectInstance;
         openInteractionLocation = _openInteractionLocation;
     }
-    
+    public Vector2Int convOpenInteractionLocationToInt()
+    {
+        Vector2Int pos = new Vector2Int();
+        pos.x = (int)Mathf.Round(openInteractionLocation.x);
+        pos.y = (int)Mathf.Round(openInteractionLocation.z);
+        return pos;
+    }
+
+
 }
 public enum Desire
 {

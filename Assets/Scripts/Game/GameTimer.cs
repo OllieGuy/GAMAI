@@ -11,7 +11,7 @@ public class GameTimer : MonoBehaviour
     private static int ticksPerTurn = 5;
 
     public static float GameTimeScale { get { return timeScale; } }
-    public static float TickTime { get { return (1/ticksPerSecond)/timeScale; } } //dividing by time is gonna hurt performance with faster time scale
+    public static float TickTime { get { return (1/ticksPerSecond)/timeScale; } }
     public static float TicksPerTurn { get { return ticksPerTurn; } }
     void Start()
     {

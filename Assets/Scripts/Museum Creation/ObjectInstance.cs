@@ -42,7 +42,6 @@ public class ObjectInstance : MonoBehaviour
 
         gameObject.GetComponent<MeshRenderer>().material = theObject.material;
         gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
-        //NavMeshModifier a = gameObject.AddComponent<NavMeshModifier>();
     }
     public void updateMuseumGridWithHard(bool isUpdate)
     {
@@ -125,12 +124,14 @@ public class ObjectInstance : MonoBehaviour
     {
         List<TranslatedPosition> shuffledInteractionPositions = worldInteractionPositions;
         shuffledInteractionPositions.Sort((x, y) => MathsFunctions.randomValue(-1, 2));
-        foreach (TranslatedPosition tp in worldInteractionPositions)
+        foreach (TranslatedPosition sip in shuffledInteractionPositions)
         {
-            if(!tp.beingUsed)
+            //Debug.Log(sip.position + " " + sip.beingUsed);
+            if(!sip.beingUsed)
             {
-                return new Vector3(tp.position.x, 0.5f, tp.position.y); //returns the first open one from the list, could make it take a pos and get closest
+                return new Vector3(sip.position.x, 0.5f, sip.position.y); //returns the first open one from the list, could make it take a pos and get closest
             }
+            
         }
         return null;
     }
@@ -143,7 +144,7 @@ public class ObjectInstance : MonoBehaviour
             Artefact recastObject = (Artefact)theObject;
             if (npc.interest == recastObject.type)
             {
-                happinessChange *= 2; //could replace later
+                happinessChange *= 2; //value is STC
             }
         }
         happinessChange *= 1 - (npc.turnsInCurrentState * 0.1f);
@@ -172,6 +173,18 @@ public class ObjectInstance : MonoBehaviour
             }
         }
         return false;
+    }
+    public void updateOpenInteractionPoint(Vector2Int worldPosToCheck, bool visiting)
+    {
+        //Debug.Log("world pos: " + worldPosToCheck);
+        foreach (TranslatedPosition tp in worldInteractionPositions)
+        {
+            if (tp.position == worldPosToCheck)
+            {
+                tp.beingUsed = visiting;
+            }
+            //Debug.Log("pos at " + tp.position + " is " + tp.beingUsed);
+        }
     }
 }
 

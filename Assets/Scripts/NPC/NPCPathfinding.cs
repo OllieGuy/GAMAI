@@ -17,7 +17,7 @@ public class NPCPathfinding
         agent = _nMAgent;
     }
 
-    public Vector3[] findPath(Vector3 targetPOS) //for some reason will calculate path to closest point rather than not working - maybe nvm?
+    public Vector3[] findPath(Vector3 targetPOS)
     {
         NavMeshPath path = new();
         bool pathIsPossible = agent.CalculatePath(targetPOS, path);
@@ -42,16 +42,12 @@ public class NPCPathfinding
         pathLength = pathWaypoints.Length - 1;
         return pathWaypoints;
     }
-    public Vector3 moveTowardsCurrentTarget(float speed) //known bug where this will break when the NPC is already in the position ALSO if it moves off the path (by collision) will break
+    public Vector3 moveTowardsCurrentTarget(float speed) //known bug where this will break when the NPC is already in the position
     {
-        //Vector3 posDif = currentTargetInPath - agent.transform.position;
-        //Vector3 newPos = agent.transform.position + (((posDif * speed) / posDif.magnitude) * Time.deltaTime * GameTimer.GameTimeScale);
-        //Vector3 newPos = Vector3.MoveTowards(agent.transform.position, currentTargetInPath, speed * Time.deltaTime * GameTimer.GameTimeScale);
         Vector2 agentVector2 = new Vector2(agent.transform.position.x, agent.transform.position.z);
         Vector2 targetVector2 = new Vector2(currentTargetInPath.x, currentTargetInPath.z);
         Vector2 newPos = agentVector2 + ((targetVector2 - agentVector2).normalized * (speed * Time.deltaTime * GameTimer.GameTimeScale));
         Vector3 returnPos = new Vector3(newPos.x, 1.5f, newPos.y);
-        //Vector3 newPos = agent.transform.position + (((currentTargetInPath - currentPath[currentTargetIndex - 1]) * speed) / magnitudeList[currentTargetIndex] * Time.deltaTime * GameTimer.GameTimeScale);
         return returnPos;
     }
 }

@@ -31,6 +31,7 @@ public class Perception
                 }
                 if (hit.collider.CompareTag("Artefact") || hit.collider.CompareTag("Donation Box") || hit.collider.CompareTag("Furniture"))
                 {
+
                     if (!percievedObjects.Contains(hit.collider.gameObject)) //change to the NPCs memory
                     {
                         //Debug.Log("Hit new " + hit.collider.gameObject.name + " with tag " + hit.collider.tag);
@@ -42,7 +43,7 @@ public class Perception
                         Debug.DrawRay(raycastPos, rayDirection, Color.yellow); //DEBUG ONLY
                     }
                 }
-                if(hit.collider.CompareTag("NPC"))
+                else if (hit.collider.CompareTag("NPC"))
                 {
                     if (!percievedNPCs.Contains(hit.collider.gameObject)) //change to the NPCs memory
                     {
@@ -59,6 +60,10 @@ public class Perception
                 {
                     Debug.DrawRay(raycastPos, rayDirection, Color.green); //DEBUG ONLY
                 }
+            }
+            else
+            {
+                Debug.DrawRay(raycastPos, rayDirection, Color.blue);
             }
         }
         returnArray[0] = percievedObjects;

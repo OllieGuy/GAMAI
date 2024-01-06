@@ -57,7 +57,7 @@ public class Controls : MonoBehaviour
                     placePos.y = (int)Mathf.Round(targetPos.z);
                     placeBlockBasedOnKeyDown(placePos);
                 }
-                else if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && hit.transform.gameObject.CompareTag("Artefact"))
+                else if (Physics.Raycast(ray, out hit, float.PositiveInfinity) && (hit.transform.gameObject.CompareTag("Artefact") || hit.transform.gameObject.CompareTag("Donation Box")))
                 {
                     ObjectInstance oi = hit.transform.gameObject.GetComponent<ObjectInstance>();
                     oi.removeObject();
@@ -66,8 +66,8 @@ public class Controls : MonoBehaviour
             }
             if (Input.GetMouseButtonDown(1))
             {
-                //testNPC.SetActive(true);
                 //StartCoroutine(instantiateNPCQuickly());
+                //StartCoroutine(instantiateNPCRandomly());
                 Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
             }
             if (Input.GetKeyDown(KeyCode.Q))
@@ -161,11 +161,23 @@ public class Controls : MonoBehaviour
     IEnumerator instantiateNPCQuickly()
     {
         int totalCount = 0;
-        while (totalCount < 1000)
+        while (totalCount < 2000)
         {
             Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
             totalCount++;
             yield return new WaitForSeconds(0.02f);
+        }
+    }
+    IEnumerator instantiateNPCRandomly()
+    {
+        int totalCount = 0;
+        while (totalCount < 25)
+        {
+            Instantiate(NPCprefab, new Vector3(0, 1.5f, 0), Quaternion.identity);
+            totalCount++;
+
+            float delay = UnityEngine.Random.Range(1f, 5f);
+            yield return new WaitForSeconds(delay);
         }
     }
 }
