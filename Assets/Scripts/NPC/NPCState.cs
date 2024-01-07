@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using static UnityEditorInternal.VersionControl.ListControl;
 
 public abstract class NPCState
 {

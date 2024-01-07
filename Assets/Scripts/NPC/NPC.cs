@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
-using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -557,7 +556,7 @@ public class NPC
     }
     private float calculateLeaveDesirability()
     {
-        float desirability = turnsSinceSpawn * 0.1f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
+        float desirability = turnsSinceSpawn * 0.02f; // 1/(second number) is how many turns itll take for NPCs to be guaranteed to leave
         return Mathf.Clamp01(desirability);
     }
     private float distanceMultiplier(ObjectInstance objInst)

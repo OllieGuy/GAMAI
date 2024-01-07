@@ -5,7 +5,7 @@ using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.SceneManagement;
 
 public class Controls : MonoBehaviour
 {
@@ -42,7 +42,6 @@ public class Controls : MonoBehaviour
         {
             checkInput();
         }
-
         void checkInput()
         {
             if (Input.GetMouseButtonDown(0))
@@ -104,6 +103,10 @@ public class Controls : MonoBehaviour
             {
                 placementCam.enabled = !placementCam.enabled;
                 viewCam.enabled = !viewCam.enabled;
+            }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
     }
